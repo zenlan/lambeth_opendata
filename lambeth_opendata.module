@@ -1,0 +1,204 @@
+<?php
+
+/**
+ * @file
+ * Entry point for the Lambeth Open Data module.
+ *
+ * @ingroup
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function lambeth_opendata_menu() {
+  $items['admin/config/search/lambeth_opendata'] = array(
+    'title' => 'Lambeth Open Data',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_admin_settings'),
+    'description' => 'Configure Lambeth Open Data',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+  );
+  $items['admin/config/search/lambeth_opendata/settings'] = array(
+    'title' => 'Settings',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/config/search/lambeth_opendata/properties'] = array(
+    'title' => 'Lambeth Open Data Entities',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'View Lambeth Open Data entity definitions, properties as well as links to pages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_entities'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 200,
+  );
+//  $items['lambeth_opendata/debug/%/%'] = array(
+//    'title' => 'Lambeth Open Data Item Debug Page',
+//    'type' => MENU_NORMAL_ITEM,
+//    'page type' => MENU_CALLBACK,
+//    'description' => 'View raw Lambeth Open Data item data',
+//    'page callback' => 'lambeth_opendata_debug',
+//    'page arguments' => array(2, 3),
+//    'access arguments' => array('administer site configuration'),
+//    'file' => 'lambeth_opendata.inc',
+//    'weight' => 300,
+//  );
+  return $items;
+}
+
+/**
+ * Access callback for the entity API.
+ *
+ * @param string $op
+ *   Operation type
+ * @param string $type
+ *   Type
+ * @param string $account
+ *   Account
+ */
+function lambeth_opendata_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer site configuration', $account);
+}
+
+/**
+ * Implements hook_search_api_service_info().
+ */
+function lambeth_opendata_search_api_service_info() {
+  $services['lambeth_opendata_solr_service'] = array(
+    'name' => t('Lambeth Open Data Solr Service'),
+    'description' => t('Extends Search API Solr service class for Lambeth Open Data indexes'),
+    'class' => 'LambethOpendDataSolrService',
+  );
+  return $services;
+}
+
+/**
+ * Implements hook_views_api().
+ */
+//function lambeth_opendata_views_api() {
+//  return array(
+//    'api' => '3.0',
+//    'path' => drupal_get_path('module', 'lambeth_opendata') . '/views',
+//  );
+//}
+
+/**
+ * Return the help text for this module
+ *
+ * @param string $path
+ *   Path
+ * @param string $arg
+ *   Argument
+ */
+function lambeth_opendata_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#lambeth_opendata':
+      $file = drupal_get_path('module', 'lambeth_opendata') . '/README.txt';
+      $output = file_get_contents($file);
+      return '<pre>' . check_plain($output) . '</pre>';
+  }
+}
+
+/**
+ * Return descriptive text for this module
+ */
+function lambeth_opendata_description() {
+  return array(
+    '#markup' => t(
+        '<h2>Lambeth Open Data</h2>
+      <p>Classes, methods and callbacks related to Lambeth Open Data entities</p>'
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+function lambeth_opendata_entity_info() {
+  $return = array(
+    'lambeth_opendata_foi' => array(
+      'label' => t('Lambeth Open Data FoI Entity'),
+      'entity class' => 'LBLODFoIClass',
+      'controller class' => 'LBLODFoIController',
+      'creation callback' => 'lambeth_opendata_foi_creation_callback',
+      'access callback' => 'lambeth_opendata_access',
+//    'view callback' => 'lambeth_opendata_view_callback',
+      'fieldable' => FALSE,
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'Ref',
+      ),
+      'static cache' => TRUE,
+      'field cache' => FALSE,
+      'label callback' => 'lambeth_opendata_foi_label',
+      'uri callback' => 'lambeth_opendata_foi_uri',
+    ),
+  );
+  return $return;
+}
+
+/**
+ * @param array $call_args
+ * @param object $query
+ */
+function lambeth_opendata_search_api_solr_query_alter(&$call_args, &$query) {
+  if ($query->getIndex()->server()->class == 'lambeth_opendata_solr_service') {
+    try {
+      $call_args['params']['fl'] = 'score *';
+      unset($call_args['params']['qf']);
+      if (empty($call_args['query'])) {
+        $call_args['query'] = '[* TO *]';
+      }
+      /*
+       * see fetchItemByIdentifier()
+       * query to get a single record by identifier
+       * when parse mode is direct, the keys are set
+       * therefore ignore filters and facets etc.
+       * and don't bother logging the search keys
+       */
+      if ($query->getOption('parse mode') === 'direct') {
+        $call_args['limit'] = 1;
+        unset($call_args['params']['fq']);
+        unset($call_args['params']['facet']);
+        unset($call_args['params']['facet.sort']);
+        unset($call_args['params']['facet.limit']);
+        unset($call_args['params']['facet.mincount']);
+        unset($call_args['params']['facet.missing']);
+        unset($call_args['params']['facet.field']);
+      }
+      // search_api_solr wants the index_id and we don't have one
+      if ($pos = preg_grep('/(index_id)/', $call_args['params']['fq'])) {
+        unset($call_args['params']['fq'][key($pos)]);
+      }
+    }
+    catch (Exception $e) {
+      watchdog('lambeth_opendata_search_api_solr_query_alter', $e->getMessage());
+    }
+  }
+}
+
+function lambeth_opendata_search_api_solr_field_mapping_alter($index, &$fields) {
+  if ($index->server()->class == 'lambeth_opendata_solr_service') {
+    $fields['search_api_id'] = 'is_search_api_id';
+    $fields['search_api_relevance'] = 'score';
+    $fields['search_api_item_id'] = 'Ref';
+    $props = entity_get_all_property_info('lambeth_opendata_foi');
+    foreach ($props as $k => $v) {
+      if (isset($fields[$k])) {
+        $fields[$k] = $k;
+      }
+    }
+  }
+}
+
+function lambeth_opendata_search_api_solr_search_results_alter(&$results, &$query, &$response) {
+//if ($query->getIndex()->server()->class == 'lambeth_opendata_solr_service') {
+//  if ($query->getIndex()->item_type=='lambeth_opendata_foi') {
+//    foreach ($results['results'] as $id => $item) {
+//    }
+//  }
+//}
+}
