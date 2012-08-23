@@ -9,8 +9,8 @@
  * entity label callback
  * @param object $entity
  */
-function lambeth_opendata_foi_label($entity) {
-  return $entity->Ref;
+function lambeth_opendata_locations_label($entity) {
+  return $entity->index;
 }
 
 /**
@@ -18,34 +18,35 @@ function lambeth_opendata_foi_label($entity) {
  * entity uri callback
  * @param object $entity
  */
-function lambeth_opendata_foi_uri($entity) {
+function lambeth_opendata_locations_uri($entity) {
   return array(
-    'path' => lambeth_opendata_foi_uri_string($entity),
+    'path' => lambeth_opendata_locations_uri_string($entity),
   );
 }
 
-function lambeth_opendata_foi_uri_string($entity) {
+function lambeth_opendata_locations_uri_string($entity) {
   if (is_array($entity)) {
     $entity = (object)$entity;
   }
-  return  '/lambeth_foi/' . $entity->Ref;
+  return  '/lambeth_locations/' . $entity->index;
 }
 
-function lambeth_opendata_foi_get_indexkey() {
+function lambeth_opendata_locations_get_indexkey() {
   if (user_access('see lambeth_opendata indexkey')) {
-    return 'Ref';
+    return 'index';
   }
   return FALSE;
 }
-function lambeth_opendata_foi_creation_callback($values, $entity_type) {
-  return new LBLODFoIClass($values);
+
+function lambeth_opendata_locations_creation_callback($values, $entity_type) {
+  return new LBLODLocationsClass($values);
 }
 
 /**
  *
- * Main class for LBLOD FoI entities.
+ * Main class for LBLOD locations entities.
  */
-class LBLODFoIClass extends Entity {
+class LBLODLocationsClass extends Entity {
 
   var $options = array();
 
@@ -55,7 +56,7 @@ class LBLODFoIClass extends Entity {
   public function __construct(array &$values = array()) {
 
     //parent assigns the values to properties
-    parent::__construct($values, 'lambeth_opendata_foi');
+    parent::__construct($values, 'lambeth_opendata_locations');
   }
 
   public function save() {
@@ -64,9 +65,9 @@ class LBLODFoIClass extends Entity {
 }
 
 /**
- * Controller class for FoI entities
+ * Controller class for locations entities
  */
-class LBLODFoIController extends DrupalDefaultEntityController{
+class LBLODLocationsController extends DrupalDefaultEntityController{
 
   public function load($values = array(), $conditions = array()) {
 
@@ -78,19 +79,19 @@ class LBLODFoIController extends DrupalDefaultEntityController{
           $id = $data;
           $data = $this->fetchItem($id);
           if (empty($data)) {
-            $data['Summary'] = 'Missing item ' . $id;
+            $data['name'] = 'Missing item ' . $id;
           }
           $data['id'] = $id;
           if (isset($data['error'])) {
 
-            $data['Summary'] = $data['error']['message'];
+            $data['name'] = $data['error']['message'];
           }
         }
-        $entities[$data['id']] = entity_create('lambeth_opendata_foi', $data);
+        $entities[$data['id']] = entity_create('lambeth_opendata_locations', $data);
       }
     } catch (Exception $e) {
 
-      watchdog('LBLODFoIController::load', '(' . $id . ')' . $e->getMessage());
+      watchdog('LBLODlocationsController::load', '(' . $id . ')' . $e->getMessage());
     }
     return $entities;
   }

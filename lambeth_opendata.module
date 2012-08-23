@@ -35,6 +35,13 @@ function lambeth_opendata_menu() {
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 200,
   );
+  $items['lambeth_opendata/autocomplete/%/%'] = array(
+    'title' => 'Lambeth Open Data Autocomplete',
+    'page callback' => 'lambeth_opendata_autocomplete',
+    'page arguments' => array(2, 3),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('access content'),
+  );
 //  $items['lambeth_opendata/debug/%/%'] = array(
 //    'title' => 'Lambeth Open Data Item Debug Page',
 //    'type' => MENU_NORMAL_ITEM,
@@ -136,8 +143,75 @@ function lambeth_opendata_entity_info() {
       'label callback' => 'lambeth_opendata_foi_label',
       'uri callback' => 'lambeth_opendata_foi_uri',
     ),
+    'lambeth_opendata_locations' => array(
+      'label' => t('Lambeth Open Data Locations Entity'),
+      'entity class' => 'LBLODLocationsClass',
+      'controller class' => 'LBLODLocationsController',
+      'creation callback' => 'lambeth_opendata_locations_creation_callback',
+      'access callback' => 'lambeth_opendata_access',
+//    'view callback' => 'lambeth_opendata_view_callback',
+      'fieldable' => FALSE,
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'index',
+      ),
+      'static cache' => TRUE,
+      'field cache' => FALSE,
+      'label callback' => 'lambeth_opendata_locations_label',
+      'uri callback' => 'lambeth_opendata_locations_uri',
+    ),
+    'lambeth_opendata_planning' => array(
+      'label' => t('Lambeth Open Data Planning Entity'),
+      'entity class' => 'LBLODPlanningClass',
+      'controller class' => 'LBLODPlanningController',
+      'creation callback' => 'lambeth_opendata_planning_creation_callback',
+      'access callback' => 'lambeth_opendata_access',
+//    'view callback' => 'lambeth_opendata_view_callback',
+      'fieldable' => FALSE,
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'REFVAL',
+      ),
+      'static cache' => TRUE,
+      'field cache' => FALSE,
+      'label callback' => 'lambeth_opendata_planning_label',
+      'uri callback' => 'lambeth_opendata_planning_uri',
+    ),
+    'lambeth_opendata_spending' => array(
+      'label' => t('Lambeth Open Data Spending Entity'),
+      'entity class' => 'LBLODSpendingClass',
+      'controller class' => 'LBLODSpendingController',
+      'creation callback' => 'lambeth_opendata_spending_creation_callback',
+      'access callback' => 'lambeth_opendata_access',
+//    'view callback' => 'lambeth_opendata_view_callback',
+      'fieldable' => FALSE,
+      'exportable' => FALSE,
+      'entity keys' => array(
+        'id' => 'Index',
+      ),
+      'static cache' => TRUE,
+      'field cache' => FALSE,
+      'label callback' => 'lambeth_opendata_spending_label',
+      'uri callback' => 'lambeth_opendata_spending_uri',
+    ),
   );
   return $return;
+}
+
+function lambeth_opendata_get_indexkey($entity_type) {
+
+  switch ($entity_type) {
+    case 'lambeth_opendata_foi':
+      return 'Ref';
+    case 'lambeth_opendata_spending':
+      return 'Index';
+    case 'lambeth_opendata_planning':
+      return 'REFVAL';
+    case 'lambeth_opendata_locations':
+      return 'index';
+    default:
+      return 'id';
+  }
 }
 
 /**
@@ -153,8 +227,8 @@ function lambeth_opendata_search_api_solr_query_alter(&$call_args, &$query) {
         $call_args['query'] = '[* TO *]';
       }
       /*
-       * see fetchItemByIdentifier()
-       * query to get a single record by identifier
+       * see fetchItem()
+       * query to get a single record
        * when parse mode is direct, the keys are set
        * therefore ignore filters and facets etc.
        * and don't bother logging the search keys
@@ -173,8 +247,7 @@ function lambeth_opendata_search_api_solr_query_alter(&$call_args, &$query) {
       if ($pos = preg_grep('/(index_id)/', $call_args['params']['fq'])) {
         unset($call_args['params']['fq'][key($pos)]);
       }
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
       watchdog('lambeth_opendata_search_api_solr_query_alter', $e->getMessage());
     }
   }
@@ -184,8 +257,10 @@ function lambeth_opendata_search_api_solr_field_mapping_alter($index, &$fields) 
   if ($index->server()->class == 'lambeth_opendata_solr_service') {
     $fields['search_api_id'] = 'is_search_api_id';
     $fields['search_api_relevance'] = 'score';
-    $fields['search_api_item_id'] = 'Ref';
-    $props = entity_get_all_property_info('lambeth_opendata_foi');
+
+    $key = lambeth_opendata_get_indexkey($index->item_type);
+    $fields['search_api_item_id'] = $key;
+    $props = entity_get_all_property_info($index->item_type);
     foreach ($props as $k => $v) {
       if (isset($fields[$k])) {
         $fields[$k] = $k;
@@ -202,3 +277,70 @@ function lambeth_opendata_search_api_solr_search_results_alter(&$results, &$quer
 //  }
 //}
 }
+
+/**
+ * Autocomplete callback function.
+ */
+function lambeth_opendata_autocomplete($type, $field, $string = NULL) {
+
+  switch ($type) {
+    case 'locations':
+      if ($field == 'type') {
+      }
+      //$results = array_combine(array_values($values), array_values($values));
+      break;
+
+    default:
+      $results = array();
+      break;
+  }
+  drupal_json_output($results);
+}
+
+function lambeth_opendata_form_views_exposed_form_alter(&$form, &$form_state, $form_id) {
+  if ($form['#id'] == 'views-exposed-form-lambeth-open-data-locations-page') {
+    //$form['type']['#autocomplete_path'] = 'lambeth_opendata/autocomplete/locations/type';
+    $form['type']['#type'] = 'select';
+    unset($form['type']['#size']);
+    $types = array(
+      'AdventurePlaygrounds',
+      'CarParks',
+      'ChildrensCentres',
+      'CommunityToilets',
+      'CoreOfficeBuildings',
+      'FoodGrowingProjects',
+      'LeisureCentres',
+      'Libraries',
+      'ParkingCCTVCameras',
+      'PoliceStations',
+      'PollingStations',
+      'PublicConveniences',
+      'RecyclingBanks',
+      'Schools',
+    );
+    sort($types);
+    $options = array_combine(array_values($types), array_values($types));
+    $form['type']['#options'] = $options;
+    return;
+  }
+  elseif ($form['#id'] == 'views-exposed-form-lambeth-open-data-spending-page') {
+    //$form['month']['#autocomplete_path'] = 'lambeth_opendata/autocomplete/spending/month';
+    $form['Year']['#type'] = 'select';
+    unset($form['Year']['#size']);
+    $years = array(
+      '',
+      '2011',
+      '2012',
+    );
+    $form['Year']['#options'] = array_combine(array_values($years), array_values($years));
+
+    $form['Month']['#type'] = 'select';
+    unset($form['Month']['#size']);
+    $months = array('', 'Jan','Feb','Mar','Apr','May','Jun',
+      'Jul','Aug','Sep','Oct','Nov','Dec');
+    $form['Month']['#options'] = array_combine(array_values($months), array_values($months));
+    return;
+  }
+  return;
+}
+

@@ -9,8 +9,8 @@
  * entity label callback
  * @param object $entity
  */
-function lambeth_opendata_foi_label($entity) {
-  return $entity->Ref;
+function lambeth_opendata_spending_label($entity) {
+  return $entity->Index;
 }
 
 /**
@@ -18,34 +18,34 @@ function lambeth_opendata_foi_label($entity) {
  * entity uri callback
  * @param object $entity
  */
-function lambeth_opendata_foi_uri($entity) {
+function lambeth_opendata_spending_uri($entity) {
   return array(
-    'path' => lambeth_opendata_foi_uri_string($entity),
+    'path' => lambeth_opendata_spending_uri_string($entity),
   );
 }
 
-function lambeth_opendata_foi_uri_string($entity) {
+function lambeth_opendata_spending_uri_string($entity) {
   if (is_array($entity)) {
     $entity = (object)$entity;
   }
-  return  '/lambeth_foi/' . $entity->Ref;
+  return  '/lambeth_spending/' . $entity->Index;
 }
 
-function lambeth_opendata_foi_get_indexkey() {
+function lambeth_opendata_spending_get_indexkey() {
   if (user_access('see lambeth_opendata indexkey')) {
-    return 'Ref';
+    return 'Index';
   }
   return FALSE;
 }
-function lambeth_opendata_foi_creation_callback($values, $entity_type) {
-  return new LBLODFoIClass($values);
+function lambeth_opendata_spending_creation_callback($values, $entity_type) {
+  return new LBLODSpendingClass($values);
 }
 
 /**
  *
- * Main class for LBLOD FoI entities.
+ * Main class for LBLOD spending entities.
  */
-class LBLODFoIClass extends Entity {
+class LBLODSpendingClass extends Entity {
 
   var $options = array();
 
@@ -55,7 +55,7 @@ class LBLODFoIClass extends Entity {
   public function __construct(array &$values = array()) {
 
     //parent assigns the values to properties
-    parent::__construct($values, 'lambeth_opendata_foi');
+    parent::__construct($values, 'lambeth_opendata_spending');
   }
 
   public function save() {
@@ -64,9 +64,9 @@ class LBLODFoIClass extends Entity {
 }
 
 /**
- * Controller class for FoI entities
+ * Controller class for spending entities
  */
-class LBLODFoIController extends DrupalDefaultEntityController{
+class LBLODSpendingController extends DrupalDefaultEntityController{
 
   public function load($values = array(), $conditions = array()) {
 
@@ -78,19 +78,19 @@ class LBLODFoIController extends DrupalDefaultEntityController{
           $id = $data;
           $data = $this->fetchItem($id);
           if (empty($data)) {
-            $data['Summary'] = 'Missing item ' . $id;
+            $data['Supplier'] = 'Missing item ' . $id;
           }
           $data['id'] = $id;
           if (isset($data['error'])) {
 
-            $data['Summary'] = $data['error']['message'];
+            $data['Supplier'] = $data['error']['message'];
           }
         }
-        $entities[$data['id']] = entity_create('lambeth_opendata_foi', $data);
+        $entities[$data['id']] = entity_create('lambeth_opendata_spending', $data);
       }
     } catch (Exception $e) {
 
-      watchdog('LBLODFoIController::load', '(' . $id . ')' . $e->getMessage());
+      watchdog('LBLODSpendingController::load', '(' . $id . ')' . $e->getMessage());
     }
     return $entities;
   }

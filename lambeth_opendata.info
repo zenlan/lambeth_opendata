@@ -10,6 +10,9 @@ dependencies[] = search_api_solr
 files[] = lambeth_opendata.admin.inc
 ;files[] = lambeth_opendata.inc
 files[] = lambeth_opendata.foi.inc
+files[] = lambeth_opendata.locations.inc
+files[] = lambeth_opendata.spending.inc
+files[] = lambeth_opendata.planning.inc
 files[] = lambeth_opendata.entity.info.inc
 files[] = lambeth_opendata.solr_service.inc
 
