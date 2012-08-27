@@ -26,7 +26,7 @@ function lambeth_opendata_menu() {
     'weight' => 0,
   );
   $items['admin/config/search/lambeth_opendata/properties'] = array(
-    'title' => 'Lambeth Open Data Entities',
+    'title' => 'Entities',
     'type' => MENU_LOCAL_TASK,
     'description' => 'View Lambeth Open Data entity definitions, properties as well as links to pages',
     'page callback' => 'drupal_get_form',
@@ -34,6 +34,26 @@ function lambeth_opendata_menu() {
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 200,
+  );
+  $items['admin/config/search/lambeth_opendata/scraper'] = array(
+    'title' => 'Scraper',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Scrape the Lambeth Open Data pages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_scraper'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 240,
+  );
+  $items['admin/config/search/lambeth_opendata/cache'] = array(
+    'title' => 'Cache',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Inspect, clear or recreate the Lambeth Open Data cache',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_cache'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 220,
   );
   $items['lambeth_opendata/autocomplete/%/%'] = array(
     'title' => 'Lambeth Open Data Autocomplete',
