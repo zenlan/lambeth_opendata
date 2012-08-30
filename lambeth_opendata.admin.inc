@@ -1,28 +1,5 @@
 <?php
 
-global $_lambeth_opendata_types;
-$baseurl = 'http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/';
-$_lambeth_opendata_types_defaults = array(
-  'foi' => array(
-    'label' => 'Freedom of Information',
-    'url' => $baseurl . 'FoIDisclosureLog.htm',
-  ),
-  'locations' => array(
-    'label' => 'Locations',
-    'url' => $baseurl . 'LocationOpenData.htm',
-  ),
-  'planning' => array(
-    'label' => 'Planning Permissions',
-    'url' => $baseurl . 'PlanningPermissionsOpenData.htm',
-  ),
-  'spending' => array(
-    'label' => 'Expenditure',
-    'url' => $baseurl . 'ExpenditureOpenDataCSV.htm',
-  ),
-);
-
-$_lambeth_opendata_types = unserialize(variable_get('lambeth_opendata_types', serialize($_lambeth_opendata_types_defaults)));
-
 /**
  * @file
  * Admin page callbacks for the Lambeth Open Data module.
@@ -79,13 +56,10 @@ function lambeth_opendata_scraper(array $form, array &$form_state) {
 }
 
 function lambeth_opendata_scraper_submit(array $form, array &$form_state) {
-  global $_lambeth_opendata_types;
-  foreach ($_lambeth_opendata_types as $type => $values) {
-    if ($cache = lambeth_opendata_scrape($values['url'])) {
-      cache_set('lambeth_opendata_' . $type, $cache);
-    }
-  }
+  module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.scraper');
+  lambeth_opendata_batch_init();
 }
+
 function lambeth_opendata_cache(array $form, array &$form_state) {
   global $_lambeth_opendata_types;
   $form['#tree'] = TRUE;
@@ -119,55 +93,6 @@ function lambeth_opendata_cache_submit_clear(array $form, array &$form_state) {
   foreach ($_lambeth_opendata_types as $type => $values) {
     cache_clear_all('lambeth_opendata_' . $type, 'cache');
   }
-}
-
-function lambeth_opendata_get_page_contents($url) {
-  if (!$result = file_get_contents($url)) {
-    drupal_set_message('Error retrieving contents from ' . $url);
-    return FALSE;
-  }
-  return $result;
-}
-
-/**
- *    // check if node exists for this file
-      // create empty file /tmp/$name
-      // put contents of href into new file
-      // analyse file
-      // create datadocument node
-      // attach file
- */
-
-function lambeth_opendata_scrape($url) {
-
-  if (!$tmp = lambeth_opendata_get_page_contents($url)) {
-    return FALSE;
-  }
-  $result = array();
-  $tagformat = '/\<a name="(?P<name>(.*))" href="(?P<href>(.*))".*\>.*\<\/a\>/Ui';
-  if ($i = preg_match_all($tagformat, $tmp, $matches)) {
-    drupal_set_message(count($matches['name']) . ' files found at ' . $url);
-    $guidformat = '/[0-9A-Z]{8}-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{12}/';
-    foreach ($matches['name'] as $k => $name) {
-      $tmp = pathinfo('http://www.lambeth.gov.uk' . $matches['href'][$k]);
-      $tmp['guid'] = '';
-      if (strtolower($tmp['extension']) == 'csv') {
-        if ($i = preg_match($guidformat, $tmp['dirname'], $gmatches)) {
-          $tmp['guid'] = $gmatches[0];
-        }
-        $result[] = $tmp;
-      }
-      else {
-        $msg = t('EXCEPTION: FILE IS NOT CSV !file', array('!file' => $tmp['basename']));
-        drupal_set_message($msg);
-        watchdog('lambeth_opendata', $msg);
-      }
-    }
-    drupal_set_message(print_r($result, TRUE));
-    return $result;
-  }
-  drupal_set_message('No CSV files found at ' . $url);
-  return FALSE;
 }
 
 function lambeth_opendata_entities(array $form, array &$form_state) {

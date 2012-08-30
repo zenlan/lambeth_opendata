@@ -7,6 +7,8 @@
  * @ingroup
  */
 
+module_load_include('inc', 'lambeth_opendata');
+
 /**
  * Implements hook_menu().
  */
