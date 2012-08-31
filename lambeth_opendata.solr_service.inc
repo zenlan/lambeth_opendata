@@ -26,18 +26,54 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
     return $field;
   }
 
-  /**
-   * This method avoids an attempt by Search API Solr
-   * to delete read-only indexes when deleting a server object
-   *
-   * @see SearchApiSolrService::removeIndex()
-   * patch pending to removeIndex to check for read-only index
-   * this can then be deprecated
-   */
-  public function removeIndex($index) {
-    if (module_exists('search_api_views')) {
-      views_invalidate_cache();
+  public function indexItems(SearchApiIndex $index, array $items) {
+    $documents = array();
+    $ret = array();
+    $index_id = $index->machine_name;
+    $fields = $this->getFieldNames($index);
+
+    foreach ($items as $id => $item) {
+      try {
+        $doc = new Apache_Solr_Document();
+        $doc->setField('id', $this->createId($index_id, $id));
+        $doc->setField('index_id', $index_id);
+        $doc->setField('item_id', $id);
+
+        foreach ($item as $key => $field) {
+          if (!isset($fields[$key])) {
+            throw new SearchApiException(t('Unknown field @field.', array('@field' => $key)));
+          }
+          $this->addIndexField($doc, $fields[$key], $field['value'], $field['type']);
+        }
+
+        $documents[] = $doc;
+        $ret[] = $id;
+      }
+      catch (Exception $e) {
+        watchdog('search_api_solr', t('An error occurred while indexing @type with ID @id: @msg.', array('@type' => $index->item_type, '@id' => $id, '@msg' => $e->getMessage())), NULL, WATCHDOG_WARNING);
+      }
     }
+
+    if (!$documents) {
+      return array();
+    }
+    try {
+      $this->connect();
+      $response = $this->solr->addDocuments($documents);
+      if ($response->getHttpStatus() == 200) {
+        if (!empty($index->options['index_directly'])) {
+          $this->scheduleCommit();
+        }
+        return $ret;
+      }
+      throw new SearchApiException(t('HTTP status @status: @msg.',
+          array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage())));
+    }
+    catch (Exception $e) {
+      watchdog('search_api_solr', t('An error occurred while indexing: @msg.', array('@msg' => $e->getMessage())), NULL, WATCHDOG_ERROR);
+    }
+    return array();
   }
+
 
 }
