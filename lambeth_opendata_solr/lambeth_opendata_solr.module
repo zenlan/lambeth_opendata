@@ -4,4 +4,4 @@
  * Code for the Lambeth Open Data Solr feature.
  */
 
-include_once 'lambeth_open_data_solr.features.inc';
+include_once 'lambeth_opendata_solr.features.inc';

@@ -6,7 +6,6 @@
  *
  * @ingroup
  */
-
 module_load_include('inc', 'lambeth_opendata');
 
 /**
@@ -56,6 +55,16 @@ function lambeth_opendata_menu() {
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 220,
+  );
+  $items['admin/config/search/lambeth_opendata/junk'] = array(
+    'title' => 'Junk',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Junk code goes here',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_junk'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 400,
   );
   $items['lambeth_opendata/autocomplete/%/%'] = array(
     'title' => 'Lambeth Open Data Autocomplete',
@@ -236,6 +245,10 @@ function lambeth_opendata_get_indexkey($entity_type) {
   }
 }
 
+function lambeth_opendata_search_api_item_type_info_alter(&$types) {
+  $types['lambeth_opendata_foi']['datasource controller'] = 'LambethOpenDataEntityDataSourceController';
+}
+
 /**
  * @param array $call_args
  * @param object $query
@@ -301,6 +314,19 @@ function lambeth_opendata_search_api_solr_search_results_alter(&$results, &$quer
 }
 
 /**
+ * A search index was edited in any way.
+ *
+ * @param SearchApiIndex $index
+ *   The edited index.
+ */
+function lambeth_opendata_search_api_index_update(SearchApiIndex $index) {
+  switch ($index->machine_name) {
+    case 'lbl_foi_index':
+      break;
+  }
+}
+
+/**
  * Autocomplete callback function.
  */
 function lambeth_opendata_autocomplete($type, $field, $string = NULL) {
@@ -308,6 +334,7 @@ function lambeth_opendata_autocomplete($type, $field, $string = NULL) {
   switch ($type) {
     case 'locations':
       if ($field == 'type') {
+
       }
       //$results = array_combine(array_values($values), array_values($values));
       break;
@@ -358,11 +385,14 @@ function lambeth_opendata_form_views_exposed_form_alter(&$form, &$form_state, $f
 
     $form['Month']['#type'] = 'select';
     unset($form['Month']['#size']);
-    $months = array('', 'Jan','Feb','Mar','Apr','May','Jun',
-      'Jul','Aug','Sep','Oct','Nov','Dec');
+    $months = array('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
     $form['Month']['#options'] = array_combine(array_values($months), array_values($months));
     return;
   }
   return;
 }
 
+function lambeth_opendata_get_type_from_index_name($machine_name) {
+  return str_replace('_index', '', str_replace('lbl_', '', $machine_name));
+}

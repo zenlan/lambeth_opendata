@@ -1,0 +1,269 @@
+<?php
+
+/**
+ * @file
+ * LambethOpenDataEntityDataSourceController class.
+ */
+
+/**
+ * To use most of the functionality of the Search API and related modules, you
+ * will only have to specify some property information in getPropertyInfo(). If
+ * you have a custom service class which already returns the extracted fields
+ * with the search results, you will only have to provide a label and a type for
+ * each field. To make this use case easier, there is also a
+ * getFieldInformation() method which you can implement instead of directly
+ * implementing getPropertyInfo().
+ */
+class LambethOpenDataEntityDataSourceController extends SearchApiEntityDataSourceController {
+
+  /**
+   * Return information on the ID field for this controller's type.
+   *
+   * This implementation will return a field named "id" of type "string". This
+   * can also be used if the item type in question has no IDs.
+   *
+   * @return array
+   *   An associative array containing the following keys:
+   *   - key: The property key for the ID field, as used in the item wrapper.
+   *   - type: The type of the ID field. Has to be one of the types from
+   *     search_api_field_types(). List types ("list<*>") are not allowed.
+   */
+  public function getIdFieldInfo() {
+    return parent::getIdFieldInfo();
+  }
+
+  /**
+   * Load items of the type of this data source controller.
+   *
+   * Always returns an empty array. If you want the items of your type to be
+   * loadable, specify a function here.
+   *
+   * @param array $ids
+   *   The IDs of the items to laod.
+   *
+   * @return array
+   *   The loaded items, keyed by ID.
+   */
+  public function loadItems(array $ids) {
+    return parent::loadItems($ids);
+    //return array();
+  }
+
+  /**
+   * Helper method that can be used by subclasses to specify the property
+   * information to use when creating a metadata wrapper.
+   *
+   * For most use cases, you will have to override this method to provide the
+   * real property information for your item type.
+   *
+   * @return array
+   *   Property information as specified by hook_entity_property_info().
+   *
+   * @see hook_entity_property_info()
+   */
+  protected function getPropertyInfo() {
+    return parent::getPropertyInfo();
+  }
+
+  /**
+   * Get the unique ID of an item.
+   *
+   * Always returns 1.
+   *
+   * @param $item
+   *   An item of this controller's type.
+   *
+   * @return
+   *   Either the unique ID of the item, or NULL if none is available.
+   */
+  public function getItemId($item) {
+    return parent::getItemId($item);
+  }
+
+  /**
+   * Get a human-readable label for an item.
+   *
+   * Always returns NULL.
+   *
+   * @param $item
+   *   An item of this controller's type.
+   *
+   * @return
+   *   Either a human-readable label for the item, or NULL if none is available.
+   */
+  public function getItemLabel($item) {
+    return parent::getItemLabel($item);
+  }
+
+  /**
+   * Get a URL at which the item can be viewed on the web.
+   *
+   * Always returns NULL.
+   *
+   * @param $item
+   *   An item of this controller's type.
+   *
+   * @return
+   *   Either an array containing the 'path' and 'options' keys used to build
+   *   the URL of the item, and matching the signature of url(), or NULL if the
+   *   item has no URL of its own.
+   */
+  public function getItemUrl($item) {
+    return parent::getItemUrl($item);
+  }
+
+  /**
+   * Initialize tracking of the index status of items for the given indexes.
+   *
+   * All currently known items of this data source's type should be inserted
+   * into the tracking table for the given indexes, with status "changed". If
+   * items were already present, these should also be set to "changed" and not
+   * be inserted again.
+   *
+   * @param array $indexes
+   *   The SearchApiIndex objects for which item tracking should be initialized.
+   *
+   * @throws SearchApiDataSourceException
+   *   If any of the indexes doesn't use the same item type as this controller.
+   */
+  public function startTracking(array $indexes) {
+    $this->stopTracking($indexes);
+    foreach ($indexes as $k => $index) {
+      $type = str_replace('_index', '', str_replace('lbl_', '', $index->machine_name));
+      $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
+      if (empty($tax)) {
+        watchdog('LambethOpenDataEntityDataSourceController', t('Failed to get tid for !type', array('!type' => $type)));
+        $tax = new stdClass();
+        $tax->tid = 0;
+        continue;
+      }
+      $query = db_select('node', 'n');
+      $query->addField('n', 'nid', 'item_id');
+      $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
+      $query->condition('n.type', 'lambeth_opendata_document', '=');
+      $query->condition('f.field_lambeth_doc_type_tid', $tax->tid, '=');
+      $query->addExpression(':index_id', 'index_id', array(':index_id' => $index->id));
+      $query->addExpression('1', 'changed');
+      db_insert($this->table)
+          ->from($query)
+          ->execute();
+    }
+  }
+
+  /**
+   * Stop tracking of the index status of items for the given indexes.
+   *
+   * The tracking tables of the given indexes should be completely cleared.
+   *
+   * @param array $indexes
+   *   The SearchApiIndex objects for which item tracking should be stopped.
+   *
+   * @throws SearchApiDataSourceException
+   *   If any of the indexes doesn't use the same item type as this controller.
+   */
+  public function stopTracking(array $indexes) {
+    return parent::stopTracking($indexes);
+  }
+
+  /**
+   * Start tracking the index status for the given items on the given indexes.
+   *
+   * @param array $item_ids
+   *   The IDs of new items to track.
+   * @param array $indexes
+   *   The indexes for which items should be tracked.
+   *
+   * @throws SearchApiDataSourceException
+   *   If any of the indexes doesn't use the same item type as this controller.
+   */
+  public function trackItemInsert(array $item_ids, array $indexes) {
+    return parent::trackItemInsert($item_ids, $indexes);
+  }
+
+  /**
+   * Set the tracking status of the given items to "changed"/"dirty".
+   *
+   * @param $item_ids
+   *   Either an array with the IDs of the changed items. Or FALSE to mark all
+   *   items as changed for the given indexes.
+   * @param array $indexes
+   *   The indexes for which the change should be tracked.
+   * @param $dequeue
+   *   If set to TRUE, also change the status of queued items.
+   *
+   * @throws SearchApiDataSourceException
+   *   If any of the indexes doesn't use the same item type as this controller.
+   */
+  public function trackItemChange($item_ids, array $indexes, $dequeue = FALSE) {
+    return parent::trackItemChange($item_ids, $indexes);
+  }
+
+  /**
+   * Set the tracking status of the given items to "indexed".
+   *
+   * @param array $item_ids
+   *   The IDs of the indexed items.
+   * @param SearchApiIndex $indexes
+   *   The index on which the items were indexed.
+   *
+   * @throws SearchApiDataSourceException
+   *   If the index doesn't use the same item type as this controller.
+   */
+  public function trackItemIndexed(array $item_ids, SearchApiIndex $index) {
+    return parent::trackItemIndexed($item_ids, $index);
+  }
+
+  /**
+   * Stop tracking the index status for the given items on the given indexes.
+   *
+   * @param array $item_ids
+   *   The IDs of the removed items.
+   * @param array $indexes
+   *   The indexes for which the deletions should be tracked.
+   *
+   * @throws SearchApiDataSourceException
+   *   If any of the indexes doesn't use the same item type as this controller.
+   */
+  public function trackItemDelete(array $item_ids, array $indexes) {
+    return parent::trackItemDelete($item_ids, $indexes);
+  }
+
+  /**
+   * Get a list of items that need to be indexed.
+   *
+   * If possible, completely unindexed items should be returned before items
+   * that were indexed but later changed. Also, items that were changed longer
+   * ago should be favored.
+   *
+   * @param SearchApiIndex $index
+   *   The index for which changed items should be returned.
+   * @param $limit
+   *   The maximum number of items to return. Negative values mean "unlimited".
+   *
+   * @return array
+   *   The IDs of items that need to be indexed for the given index.
+   */
+  public function getChangedItems(SearchApiIndex $index, $limit = -1) {
+    return parent::getChangedItems($index, $limit);
+  }
+
+  /**
+   * Get information on how many items have been indexed for a certain index.
+   *
+   * @param SearchApiIndex $index
+   *   The index whose index status should be returned.
+   *
+   * @return array
+   *   An associative array containing two keys (in this order):
+   *   - indexed: The number of items already indexed in their latest version.
+   *   - total: The total number of items that have to be indexed for this
+   *     index.
+   *
+   * @throws SearchApiDataSourceException
+   *   If the index doesn't use the same item type as this controller.
+   */
+  public function getIndexStatus(SearchApiIndex $index) {
+    return parent::getIndexStatus($index);
+  }
+
+}

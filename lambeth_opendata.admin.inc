@@ -6,6 +6,38 @@
  *
  * @ingroup
  */
+function lambeth_opendata_junk(array $form, array &$form_state) {
+//  $machine_name = 'lbl_foi_index';
+//  $type = str_replace('_index', '', str_replace('lbl_', '', $machine_name));
+  $type = lambeth_opendata_get_type_from_index_name('lbl_foi_index');
+  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
+  if (empty($tax)) {
+    $markup = t('Failed to get tid for !type', array('!type' => $type));
+  }
+  else {
+    $query = db_select('node', 'n');
+    $query->addField('n', 'nid');
+    //$query->addField('f', 'field_lambeth_doc_type_tid');
+    $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
+    $query->condition('n.type', 'lambeth_opendata_document', '=');
+    $query->condition('f.field_lambeth_doc_type_tid', $tax->tid, '=');
+
+//SELECT n.nid AS nid, f.field_lambeth_doc_type_tid AS field_lambeth_doc_type_tid
+//FROM node n
+//LEFT OUTER JOIN field_data_field_lambeth_doc_type f ON f.entity_id=n.nid
+//WHERE n.type = 'lambeth_opendata_document'
+//AND f.field_lambeth_doc_type_tid = 1
+
+    $res = $query->execute();
+    $result = $res->fetchAll();
+    $markup = '<pre>' . print_r($result,1) . '</pre>';
+  }
+  $form['description'] = array(
+    '#markup' => $markup,
+  );
+  return $form;
+}
+
 function lambeth_opendata_admin_settings(array $form, array &$form_state) {
   global $_lambeth_opendata_types;
 

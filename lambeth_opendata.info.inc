@@ -9,7 +9,9 @@
 function lambeth_opendata_entity_property_info() {
   $info = array();
   $properties = &$info['lambeth_opendata_foi']['properties'];
-  $properties['Ref'] = array('type' => 'integer', 'label' => 'Ref', 'description' => 'Ref');
+  $properties['Ref'] = array('type' => 'integer', 'label' => 'Ref', 'description' => 'Ref',
+    'datasource controller' => 'LambethOpenDataEntityDataSourceController',
+  );
   $properties['Received'] = array('type' => 'date', 'label' => 'Received', 'description' => 'Received');
   $properties['Summary'] = array('type' => 'text', 'label' => 'Summary', 'description' => 'Summary');
 

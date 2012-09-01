@@ -1,0 +1,32 @@
+diff --git "a/SolrPhpClient/Apache/Solr/Service.ph" "b/SolrPhpClient/Apache/Solr/Service.ph"
+index ea9ae37..44cc9d5 100644
+--- a/SolrPhpClient/Apache/Solr/Service.php
++++ b/SolrPhpClient/Apache/Solr/Service.php
+@@ -117,6 +117,7 @@ class Apache_Solr_Service
+ 	 */
+ 	const PING_SERVLET = 'admin/ping';
+ 	const UPDATE_SERVLET = 'update';
++  const UPDATECSV_SERVLET = 'update/csv';
+ 	const SEARCH_SERVLET = 'select';
+ 	const THREADS_SERVLET = 'admin/threads';
+ 	const EXTRACT_SERVLET = 'update/extract';
+@@ -288,6 +289,7 @@ class Apache_Solr_Service
+ 		$this->_searchUrl = $this->_constructUrl(self::SEARCH_SERVLET);
+ 		$this->_threadsUrl = $this->_constructUrl(self::THREADS_SERVLET, array('wt' => self::SOLR_WRITER ));
+ 		$this->_updateUrl = $this->_constructUrl(self::UPDATE_SERVLET, array('wt' => self::SOLR_WRITER ));
++    $this->_updateCSVUrl = $this->_constructUrl(self::UPDATECSV_SERVLET, array('wt' => self::SOLR_WRITER ));
+ 
+ 		$this->_urlsInited = true;
+ 	}
+@@ -669,6 +671,11 @@ class Apache_Solr_Service
+ 		return $this->_sendRawPost($this->_updateUrl, $rawPost);
+ 	}
+ 
++	public function addCSV($rawPost)
++	{
++		return $this->_sendRawPost($this->_updateCSVUrl, $rawPost, FALSE, 'text/plain; charset=UTF-8');
++	}
++
+ 	/**
+ 	 * Add a Solr Document to the index
+ 	 *

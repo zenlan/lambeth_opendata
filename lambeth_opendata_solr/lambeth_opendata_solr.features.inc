@@ -1,20 +1,20 @@
 <?php
 /**
  * @file
- * lambeth_open_data_solr.features.inc
+ * lambeth_opendata_solr.features.inc
  */
 
 /**
  * Implements hook_views_api().
  */
-function lambeth_open_data_solr_views_api() {
+function lambeth_opendata_solr_views_api() {
   return array("version" => "3.0");
 }
 
 /**
  * Implements hook_default_search_api_index().
  */
-function lambeth_open_data_solr_default_search_api_index() {
+function lambeth_opendata_solr_default_search_api_index() {
   $items = array();
   $items['lbl_foi_index'] = entity_import('search_api_index', '{
     "name" : "LBL FoI Index",
@@ -30,10 +30,50 @@ function lambeth_open_data_solr_default_search_api_index() {
         "Received" : { "type" : "date" },
         "Summary" : { "type" : "text" },
         "search_api_language" : { "type" : "string" }
+      },
+      "data_alter_callbacks" : {
+        "search_api_alter_add_viewed_entity" : { "status" : 0, "weight" : "0", "settings" : { "mode" : false } },
+        "search_api_alter_add_aggregation" : { "status" : 0, "weight" : "0", "settings" : [] },
+        "search_api_alter_add_url" : { "status" : 0, "weight" : "0", "settings" : [] }
+      },
+      "processors" : {
+        "search_api_case_ignore" : {
+          "status" : 0,
+          "weight" : "0",
+          "settings" : { "fields" : { "Summary" : true } }
+        },
+        "search_api_html_filter" : {
+          "status" : 0,
+          "weight" : "10",
+          "settings" : {
+            "fields" : { "Summary" : true },
+            "title" : 0,
+            "alt" : 1,
+            "tags" : "h1 = 5\\r\\nh2 = 3\\r\\nh3 = 2\\r\\nstrong = 2\\r\\nb = 2\\r\\nem = 1.5\\r\\nu = 1.5"
+          }
+        },
+        "search_api_tokenizer" : {
+          "status" : 0,
+          "weight" : "20",
+          "settings" : {
+            "fields" : { "Summary" : true },
+            "spaces" : "[^[:alnum:]]",
+            "ignorable" : "[\\u0027]"
+          }
+        },
+        "search_api_stopwords" : {
+          "status" : 0,
+          "weight" : "30",
+          "settings" : {
+            "fields" : { "Summary" : true },
+            "file" : "",
+            "stopwords" : "but\\r\\ndid\\r\\nthe this that those\\r\\netc"
+          }
+        }
       }
     },
     "enabled" : "1",
-    "read_only" : "1"
+    "read_only" : "0"
   }');
   $items['lbl_locations_index'] = entity_import('search_api_index', '{
     "name" : "LBL Locations Index",
@@ -111,7 +151,7 @@ function lambeth_open_data_solr_default_search_api_index() {
 /**
  * Implements hook_default_search_api_server().
  */
-function lambeth_open_data_solr_default_search_api_server() {
+function lambeth_opendata_solr_default_search_api_server() {
   $items = array();
   $items['lbl_foi_server'] = entity_import('search_api_server', '{
     "name" : "LBL FoI Server",
@@ -123,8 +163,8 @@ function lambeth_open_data_solr_default_search_api_server() {
       "port" : "8080",
       "path" : "\\/solr\\/lambeth_foi",
       "default_field" : "Ref",
-      "http_user" : "admin",
-      "http_pass" : "admin",
+      "http_user" : "",
+      "http_pass" : "",
       "excerpt" : 1,
       "retrieve_data" : 1,
       "highlight_data" : 1

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Lambeth Open Data Feature feature.
+ */
+
+include_once 'lambeth_opendata_feature.features.inc';

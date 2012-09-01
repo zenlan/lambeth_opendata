@@ -1,7 +1,7 @@
 name = Lambeth Open Data
 description = Services, classes and utilities for integrating Lambeth Open Data
 core = 7.x
-package = Search
+package = Lambeth
 
 ;dependencies[] = views
 dependencies[] = entity
@@ -16,5 +16,6 @@ files[] = lambeth_opendata.spending.inc
 files[] = lambeth_opendata.planning.inc
 files[] = lambeth_opendata.entity.info.inc
 files[] = lambeth_opendata.solr_service.inc
+files[] = lambeth_opendata.datasource.inc
 
 configure = admin/config/search/lambeth_opendata

@@ -27,14 +27,13 @@ function lambeth_opendata_import($type, $data) {
     return TRUE;
   }
   return TRUE;
-  //cache_set('lambeth_opendata_' . $type, $nodes);
 }
 
 function _lambeth_opendata_node_new_datadoc($type, $data) {
 
   try {
     if ($data['nid']) {
-      file_usage_add($data['file_obj'], 'file', 'node', $data['nid']);
+      //file_usage_add($data['file_obj'], 'file', 'node', $data['nid']);
       $node = node_load($data['nid']);
     }
     else {
@@ -46,23 +45,22 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
       $node->path['alias'] = '';
       $node->log = 'This node revision was imported on ' . date('c');
       $node->status = 0;
-      $node->type = 'data_document';
+      $node->type = 'lambeth_opendata_document';
       $node->body = '';
-
     }
     $node->title = $data['title'];
-    $node->field_uid[$node->language][0]['value'] = $data['uid'];
-    $node->field_docname[$node->language][0]['value'] = $data['filename'];
-    $node->field_docurl[$node->language][0]['value'] = $data['dirname'];
-    $node->field_docfilename[$node->language][0]['value'] = $data['basename'];
+    $node->field_lambeth_doc_uid[$node->language][0]['value'] = $data['uid'];
+    $node->field_lambeth_doc_name[$node->language][0]['value'] = $data['filename'];
+    $node->field_lambeth_doc_url[$node->language][0]['value'] = $data['dirname'];
+    $node->field_lambeth_doc_filename[$node->language][0]['value'] = $data['basename'];
 
-    $tax = array_pop(taxonomy_get_term_by_name($type, 'document_types'));
+    $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
     if (empty($tax)) {
       watchdog('lambeth_opendata', t('Failed to get tid for !type', array('!type' => $type)));
       $tax = new stdClass();
       $tax->tid = 0;
     }
-    $node->field_doctype[$node->language][0] = $tax->tid;
+    $node->field_lambeth_doc_type[$node->language][0] = $tax->tid;
 
     $field_doc = array(
       'fid' => $data['file_obj']->fid,
@@ -73,10 +71,13 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
       'status' => 1,
       'display' => 1,
     );
-    $node->field_document[$node->language][0] = $field_doc;
+    $node->field_lambeth_doc_file[$node->language][0] = $field_doc;
 
     node_object_prepare($node);
     node_save($node);
+    if (!$node->nid) {
+      watchdog('lambeth_opendata', t('Node did not return nid for !type', array('!type' => $type)));
+    }
   } catch (Exception $e) {
     watchdog('lambeth_opendata', t('Exception: !e', array('!e' => $e->getMessage())));
   }
@@ -107,12 +108,11 @@ function _lambeth_opendata_upload_file_managed($type, $data) {
   return $file_obj;
 }
 
-function _lambeth_opendata_get_node_by_uid($uid) {
-  $nid = db_select('node')
-      ->fields('node', array('nid'))
-      ->condition('type', 'data_document', '=')
-      ->condition('uid', $uid, '=')
-      ->execute()
-      ->fetchField();
+function _lambeth_opendata_get_node_by_uid($duid) {
+  $query = db_select('field_revision_field_lambeth_doc_uid', 'f');
+  $query->addField('f', 'entity_id');
+  $query->condition('f.field_lambeth_doc_uid_value', $duid, '=');
+  $res = $query->execute();
+  $nid = $res->fetchField();
   return $nid;
 }

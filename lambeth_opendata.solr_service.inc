@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Search API Solr service class extension
  */
@@ -27,53 +28,87 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
   }
 
   public function indexItems(SearchApiIndex $index, array $items) {
-    $documents = array();
-    $ret = array();
-    $index_id = $index->machine_name;
-    $fields = $this->getFieldNames($index);
-
-    foreach ($items as $id => $item) {
-      try {
-        $doc = new Apache_Solr_Document();
-        $doc->setField('id', $this->createId($index_id, $id));
-        $doc->setField('index_id', $index_id);
-        $doc->setField('item_id', $id);
-
-        foreach ($item as $key => $field) {
-          if (!isset($fields[$key])) {
-            throw new SearchApiException(t('Unknown field @field.', array('@field' => $key)));
-          }
-          $this->addIndexField($doc, $fields[$key], $field['value'], $field['type']);
-        }
-
-        $documents[] = $doc;
-        $ret[] = $id;
-      }
-      catch (Exception $e) {
-        watchdog('search_api_solr', t('An error occurred while indexing @type with ID @id: @msg.', array('@type' => $index->item_type, '@id' => $id, '@msg' => $e->getMessage())), NULL, WATCHDOG_WARNING);
-      }
-    }
-
-    if (!$documents) {
-      return array();
-    }
+    $result = array();
+    $type = lambeth_opendata_get_type_from_index_name($index->machine_name);
+    $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
     try {
       $this->connect();
-      $response = $this->solr->addDocuments($documents);
-      if ($response->getHttpStatus() == 200) {
-        if (!empty($index->options['index_directly'])) {
-          $this->scheduleCommit();
+      $curl = new Apache_Solr_HttpTransport_Curl();
+      $this->solr->setHttpTransport($curl);
+      foreach ($items as $id => $item) {
+        $node = node_load($id, NULL, TRUE);
+        if (!is_object($node)) {
+          $msg = t('Failed to load node %id', array('%id' => $id));
+          watchdog('LambethOpendDataSolrService', $msg);
+          continue;
         }
-        return $ret;
+//        if ($node->field_lambeth_doc_type[LANGUAGE_NONE][0]['tid'] !== $tax->tid) {
+//          continue;
+//        }
+        $node_file = (object) $node->field_lambeth_doc_file[LANGUAGE_NONE][0];
+        if (!is_file($node_file->uri)) {
+          $msg = t('File %file not found', array('%file' => $node_file->uri));
+          watchdog('LambethOpendDataSolrService', $msg);
+          continue;
+        }
+        $url = file_create_url($node_file->uri);
+        if (!$tmpfile = lambeth_opendata_rewrite_datadoc($type, $url, $node->field_lambeth_doc_name[LANGUAGE_NONE][0]['value'])) {
+          $msg = t('Failed to rewrite %file', array('%file' => $node_file->uri));
+          watchdog('LambethOpendDataSolrService', $msg);
+          continue;
+        }
+        if (!$post_data = file_get_contents($tmpfile)) {
+          $msg = t('Failed to get contents of %file', array('%file' => $node_file->uri));
+          watchdog('LambethOpendDataSolrService', $msg);
+          continue;
+        }
+        $response = $this->solr->addCSV($post_data);
+        if ($response->getHttpStatus() == 200) {
+          $result[] = $id;
+        }
+        else {
+          throw new SearchApiException(t('HTTP status @status: @msg.', array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage())));
+        }
       }
-      throw new SearchApiException(t('HTTP status @status: @msg.',
-          array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage())));
+      if (!empty($result) && !empty($index->options['index_directly'])) {
+        $this->scheduleCommit();
+      }
+      else {
+        $this->commit();
+      }
+    } catch (Exception $e) {
+      watchdog('LambethOpendDataSolrService', t('Error indexing node @id: @msg.', array('@id' => $id, '@msg' => $e->getMessage())), NULL, WATCHDOG_WARNING);
     }
-    catch (Exception $e) {
-      watchdog('search_api_solr', t('An error occurred while indexing: @msg.', array('@msg' => $e->getMessage())), NULL, WATCHDOG_ERROR);
-    }
-    return array();
+
+    return $result;
   }
 
+  function _addCSV($file) {
+    $post_data = file_get_contents($file);
+    try {
+      $transport = new Apache_Solr_HttpTransport_Curl();
+      $service = new Apache_Solr_service('localhost', 8080, '/solr/test/', $transport);
+      $response = $service->addCSV($post_data);
+      $service->commit();
+      return $response;
+    } catch (Exception $e) {
+      return $e->getMessage();
+    }
+  }
+
+  /**
+   * This method has a custom, Solr-specific extension:
+   * If $ids is a string other than "all", it is treated as a Solr query. All
+   * items matching that Solr query are then deleted. If $index is additionally
+   * specified, then only those items also lying on that index will be deleted.
+   * It is up to the caller to ensure $ids is a valid query when the method is
+   * called in this fashion.
+   */
+  public function deleteItems($ids = 'all', SearchApiIndex $index = NULL) {
+    $this->connect();
+    $q = $ids == 'all' ? '*:*' : $ids;
+    $this->solr->deleteByQuery($q);
+    $this->scheduleCommit();
+  }
 
 }

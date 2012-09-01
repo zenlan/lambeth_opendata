@@ -1,17 +1,17 @@
 <?php
 /**
  * @file
- * lambeth_open_data_solr.views_default.inc
+ * lambeth_opendata_solr.views_default.inc
  */
 
 /**
  * Implements hook_views_default_views().
  */
-function lambeth_open_data_solr_views_default_views() {
+function lambeth_opendata_solr_views_default_views() {
   $export = array();
 
   $view = new view();
-  $view->name = 'lambeth_open_data_foi';
+  $view->name = 'lambeth_opendata_foi';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'search_api_index_lbl_foi_index';
@@ -81,10 +81,10 @@ function lambeth_open_data_solr_views_default_views() {
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $handler->display->display_options['menu']['context'] = 0;
-  $export['lambeth_open_data_foi'] = $view;
+  $export['lambeth_opendata_foi'] = $view;
 
   $view = new view();
-  $view->name = 'lambeth_open_data_locations';
+  $view->name = 'lambeth_opendata_locations';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'search_api_index_lbl_locations_index';
@@ -215,10 +215,10 @@ function lambeth_open_data_solr_views_default_views() {
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Lambeth Locations';
   $handler->display->display_options['menu']['name'] = 'main-menu';
-  $export['lambeth_open_data_locations'] = $view;
+  $export['lambeth_opendata_locations'] = $view;
 
   $view = new view();
-  $view->name = 'lambeth_open_data_planning';
+  $view->name = 'lambeth_opendata_planning';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'search_api_index_lbl_planning_index';
@@ -311,10 +311,10 @@ function lambeth_open_data_solr_views_default_views() {
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Lambeth Planning';
   $handler->display->display_options['menu']['name'] = 'main-menu';
-  $export['lambeth_open_data_planning'] = $view;
+  $export['lambeth_opendata_planning'] = $view;
 
   $view = new view();
-  $view->name = 'lambeth_open_data_spending';
+  $view->name = 'lambeth_opendata_spending';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'search_api_index_lbl_spending_index';
@@ -427,7 +427,7 @@ function lambeth_open_data_solr_views_default_views() {
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Lambeth Spending';
   $handler->display->display_options['menu']['name'] = 'main-menu';
-  $export['lambeth_open_data_spending'] = $view;
+  $export['lambeth_opendata_spending'] = $view;
 
   return $export;
 }
