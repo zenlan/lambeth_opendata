@@ -1,7 +1,4 @@
 <?php
-
-// $Id$
-
 /**
  * @file
  */
@@ -24,7 +21,7 @@ function lambeth_opendata_import($type, $data) {
     if ($v['file_obj'] = _lambeth_opendata_upload_file_managed($type, $v)) {
       _lambeth_opendata_node_new_datadoc($type, $v);
     }
-    return TRUE;
+    //return TRUE;
   }
   return TRUE;
 }

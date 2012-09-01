@@ -101,7 +101,7 @@ function lambeth_opendata_solr_default_search_api_index() {
       }
     },
     "enabled" : "1",
-    "read_only" : "1"
+    "read_only" : "0"
   }');
   $items['lbl_planning_index'] = entity_import('search_api_index', '{
     "name" : "LBL Planning Index",
@@ -122,7 +122,7 @@ function lambeth_opendata_solr_default_search_api_index() {
       }
     },
     "enabled" : "1",
-    "read_only" : "1"
+    "read_only" : "0"
   }');
   $items['lbl_spending_index'] = entity_import('search_api_index', '{
     "name" : "LBL Spending Index",
@@ -143,7 +143,7 @@ function lambeth_opendata_solr_default_search_api_index() {
       }
     },
     "enabled" : "1",
-    "read_only" : "1"
+    "read_only" : "0"
   }');
   return $items;
 }
@@ -199,8 +199,8 @@ function lambeth_opendata_solr_default_search_api_server() {
       "port" : "8080",
       "path" : "\\/solr\\/lambeth_planning",
       "default_field" : "REFVAL",
-      "http_user" : "admin",
-      "http_pass" : "admin",
+      "http_user" : "",
+      "http_pass" : "",
       "excerpt" : 1,
       "retrieve_data" : 1,
       "highlight_data" : 1

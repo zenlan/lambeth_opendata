@@ -247,6 +247,9 @@ function lambeth_opendata_get_indexkey($entity_type) {
 
 function lambeth_opendata_search_api_item_type_info_alter(&$types) {
   $types['lambeth_opendata_foi']['datasource controller'] = 'LambethOpenDataEntityDataSourceController';
+  $types['lambeth_opendata_locations']['datasource controller'] = 'LambethOpenDataEntityDataSourceController';
+  $types['lambeth_opendata_planning']['datasource controller'] = 'LambethOpenDataEntityDataSourceController';
+  $types['lambeth_opendata_spending']['datasource controller'] = 'LambethOpenDataEntityDataSourceController';
 }
 
 /**
@@ -322,8 +325,82 @@ function lambeth_opendata_search_api_solr_search_results_alter(&$results, &$quer
 function lambeth_opendata_search_api_index_update(SearchApiIndex $index) {
   switch ($index->machine_name) {
     case 'lbl_foi_index':
+    case 'lbl_locations_index':
+    case 'lbl_planning_index':
+    case 'lbl_spending_index':
       break;
   }
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * Marks the new item as to-index for all indexes on entities of the specified
+ * type.
+ *
+ * @param $entity
+ *   The new entity.
+ * @param $type
+ *   The entity's type.
+ */
+function lambeth_opendata_entity_insert($entity, $type) {
+  if ($type = lambeth_opendata_trackable_entity($entity, $type)) {
+    list($id) = entity_extract_ids('node', $entity);
+    if (isset($id)) {
+      search_api_track_item_insert($type, array($id));
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Marks the item as changed for all indexes on entities of the specified type.
+ *
+ * @param $entity
+ *   The updated entity.
+ * @param $type
+ *   The entity's type.
+ */
+function lambeth_opendata_entity_update($entity, $type) {
+  if ($type = lambeth_opendata_trackable_entity($entity, $type)) {
+    list($id) = entity_extract_ids('node', $entity);
+    if (isset($id)) {
+      search_api_track_item_change($type, array($id));
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ *
+ * Removes the item from the tracking table and deletes it from all indexes.
+ *
+ * @param $entity
+ *   The updated entity.
+ * @param $type
+ *   The entity's type.
+ */
+function lambeth_opendata_entity_delete($entity, $type) {
+  if ($type = lambeth_opendata_trackable_entity($entity, $type)) {
+    list($id) = entity_extract_ids('node', $entity);
+    if (isset($id)) {
+      search_api_track_item_delete($type, array($id));
+    }
+  }
+}
+
+function lambeth_opendata_trackable_entity($entity, $type) {
+  global $_lambeth_opendata_types;
+  if ($type == 'node') {
+    if ($entity->type == 'lambeth_opendata_document') {
+      $doctype = lambeth_opendata_get_node_type_by_tid($entity->field_lambeth_doc_type[LANGUAGE_NONE][0]['tid']);
+      if (array_key_exists($doctype, $_lambeth_opendata_types)) {
+        return 'lambeth_opendata_' . $doctype;
+      }
+    }
+  }
+  return FALSE;
 }
 
 /**
@@ -395,4 +472,20 @@ function lambeth_opendata_form_views_exposed_form_alter(&$form, &$form_state, $f
 
 function lambeth_opendata_get_type_from_index_name($machine_name) {
   return str_replace('_index', '', str_replace('lbl_', '', $machine_name));
+}
+
+function lambeth_opendata_get_node_type_by_tid($tid) {
+  $tax = taxonomy_term_load($tid);
+  if (empty($tax)) {
+    return FALSE;
+  }
+  return $tax->name;
+}
+
+function lambeth_opendata_get_node_tid_by_type($type) {
+  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
+  if (empty($tax)) {
+    return FALSE;
+  }
+  return $tax->tid;
 }

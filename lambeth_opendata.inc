@@ -44,13 +44,12 @@ function lambeth_opendata_get_page_contents($url) {
   return $result;
 }
 
-
 function lambeth_opendata_rewrite_datadoc($type, $url, $name) {
   return call_user_func_array('lambeth_opendata_rewrite_' . $type, array($url, $name));
 }
 
 function lambeth_opendata_rewrite_locations($url, $name) {
-  $result = preg_match('/Lambeth(.*)\.csv/', $name, $matches);
+  $result = preg_match('/Lambeth(.*)/', $name, $matches);
   if ($result) {
     $type = $matches[1];
     $fields = lambeth_opendata_map_locations_fields($type);
@@ -90,30 +89,33 @@ function lambeth_opendata_rewrite_locations($url, $name) {
 }
 
 function lambeth_opendata_rewrite_spending($url, $name) {
-  $result = preg_match('/LambethPaymentsOver500(.*)\.csv/', $name, $matches);
+  $result = preg_match('/LambethPaymentsOver500(.*)/', $name, $matches);
   if ($result) {
     $array = date_parse_from_format('jMYY', '1' . $matches[1]);
     $timestamp = mktime(0, 0, 0, $array['month'], $array['day'], $array['year']);
     $month = date('M', $timestamp);
     $year = date('Y', $timestamp);
     $cols = array('Supplier', 'Total', 'Index', 'Month', 'Year');
-    //$indexfile = $_lambeth_opendata_private_dir . '/LambethSpending_' . $month . '_' . $year . '_index.csv';
-    if ($data = lambeth_opendata_csv_readfile($url)) {
-      $data = array_splice($data, 4);
-      $rows = array();
-      foreach ($data as $k => $v) {
-        $v[0] = trim($v[0]);
-        if (empty($v[0]) || ($v[0] == 'Grand Total')) {
-          continue;
-        }
-        $rows[$k][0] = $v[0];
-        $rows[$k][1] = ltrim(str_replace(',', '', $v[1]), '£');
-        $rows[$k][2] = $timestamp + $k;
-        $rows[$k][3] = $month;
-        $rows[$k][4] = $year;
-      }
-      $result = csv_writefile($name, $cols, $rows);
+    if (!$data = lambeth_opendata_csv_readfile($url)) {
+      $result = FALSE;
     }
+    $data = array_splice($data, 4);
+    $rows = array();
+    foreach ($data as $k => $v) {
+      $v[0] = trim($v[0]);
+      if (count($v) !== 2) {
+        return FALSE;
+      }
+      if (empty($v[0]) || ($v[0] == 'Grand Total')) {
+        continue;
+      }
+      $rows[$k][0] = $v[0];
+      $rows[$k][1] = ltrim(str_replace(',', '', $v[1]), '£');
+      $rows[$k][2] = $timestamp + $k;
+      $rows[$k][3] = $month;
+      $rows[$k][4] = $year;
+    }
+    $result = lambeth_opendata_csv_writefile($name, $cols, $rows);
   }
   return $result;
 }

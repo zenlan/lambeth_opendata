@@ -30,7 +30,7 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
   public function indexItems(SearchApiIndex $index, array $items) {
     $result = array();
     $type = lambeth_opendata_get_type_from_index_name($index->machine_name);
-    $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
+    //$tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
     try {
       $this->connect();
       $curl = new Apache_Solr_HttpTransport_Curl();
@@ -67,7 +67,8 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
           $result[] = $id;
         }
         else {
-          throw new SearchApiException(t('HTTP status @status: @msg.', array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage())));
+          $msg = t('HTTP status @status: @msg.', array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage()));
+          watchdog('LambethOpendDataSolrService', $msg);
         }
       }
       if (!empty($result) && !empty($index->options['index_directly'])) {
@@ -106,8 +107,15 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
    */
   public function deleteItems($ids = 'all', SearchApiIndex $index = NULL) {
     $this->connect();
-    $q = $ids == 'all' ? '*:*' : $ids;
-    $this->solr->deleteByQuery($q);
+    if (is_array($ids)) {
+      $this->solr->deleteByMultipleIds($ids);
+    }
+    elseif ($ids == 'all') {
+      $this->solr->deleteByQuery('*:*');
+    }
+    else {
+      $this->solr->deleteById($ids);
+    }
     $this->scheduleCommit();
   }
 
