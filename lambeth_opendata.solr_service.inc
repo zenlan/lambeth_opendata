@@ -30,7 +30,6 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
   public function indexItems(SearchApiIndex $index, array $items) {
     $result = array();
     $type = lambeth_opendata_get_type_from_index_name($index->machine_name);
-    //$tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
     try {
       $this->connect();
       $curl = new Apache_Solr_HttpTransport_Curl();
@@ -42,9 +41,6 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
           watchdog('LambethOpendDataSolrService', $msg);
           continue;
         }
-//        if ($node->field_lambeth_doc_type[LANGUAGE_NONE][0]['tid'] !== $tax->tid) {
-//          continue;
-//        }
         $node_file = (object) $node->field_lambeth_doc_file[LANGUAGE_NONE][0];
         if (!is_file($node_file->uri)) {
           $msg = t('File %file not found', array('%file' => $node_file->uri));
@@ -74,27 +70,10 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
       if (!empty($result) && !empty($index->options['index_directly'])) {
         $this->scheduleCommit();
       }
-      else {
-        $this->commit();
-      }
     } catch (Exception $e) {
       watchdog('LambethOpendDataSolrService', t('Error indexing node @id: @msg.', array('@id' => $id, '@msg' => $e->getMessage())), NULL, WATCHDOG_WARNING);
     }
-
     return $result;
-  }
-
-  function _addCSV($file) {
-    $post_data = file_get_contents($file);
-    try {
-      $transport = new Apache_Solr_HttpTransport_Curl();
-      $service = new Apache_Solr_service('localhost', 8080, '/solr/test/', $transport);
-      $response = $service->addCSV($post_data);
-      $service->commit();
-      return $response;
-    } catch (Exception $e) {
-      return $e->getMessage();
-    }
   }
 
   /**

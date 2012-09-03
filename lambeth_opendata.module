@@ -475,17 +475,260 @@ function lambeth_opendata_get_type_from_index_name($machine_name) {
 }
 
 function lambeth_opendata_get_node_type_by_tid($tid) {
-  $tax = taxonomy_term_load($tid);
-  if (empty($tax)) {
-    return FALSE;
+  global $_lambeth_opendata_types;
+  foreach ($_lambeth_opendata_types as $type => $info) {
+    if ($info['tid'] == $tid) {
+      return $type;
+    }
   }
-  return $tax->name;
+  return FALSE;
 }
 
 function lambeth_opendata_get_node_tid_by_type($type) {
-  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
-  if (empty($tax)) {
-    return FALSE;
+  global $_lambeth_opendata_types;
+  return isset($_lambeth_opendata_types[$type]) ? $_lambeth_opendata_types[$type]['tid'] : FALSE;
+}
+
+/**
+ * This hook is called right after the execute process. The query has
+ * been executed, but the pre_render() phase has not yet happened for
+ * handlers.
+ *
+ * Adding output to the view can be accomplished by placing text on
+ * $view->attachment_before and $view->attachment_after. Altering the
+ * content can be achieved by editing the items of $view->result.
+ * @param $view
+ *   The view object about to be processed.
+ */
+function lambeth_opendata_views_post_execute(&$view) {
+//  if ($view->name == 'lambeth_opendata_documents') {
+//    $view->field['nothing']->table = 'search_api_item';
+//    $view->field['nothing']->real_field = 'changed';
+//    return;
+//  }
+  return;
+}
+
+/**
+ * This hook is called right before the render process. The query has been
+ * executed, and the pre_render() phase has already happened for handlers, so
+ * all data should be available.
+ *
+ * Adding output to the view can be accomplished by placing text on
+ * $view->attachment_before and $view->attachment_after. Altering the content
+ * can be achieved by editing the items of $view->result.
+ *
+ * This hook can be utilized by themes.
+ * @param $view
+ *   The view object about to be processed.
+ */
+function lambeth_opendata_views_pre_render(&$view) {
+//  if ($view->name == 'lambeth_opendata_documents') {
+//    foreach ($view->result as $row) {
+//      continue;
+//    }
+//  }
+}
+
+
+/**
+ * Alter the query before executing the query.
+ *
+ * This hook should be placed in MODULENAME.views.inc and it will be
+ * auto-loaded. MODULENAME.views.inc must be in the directory specified by the
+ * 'path' key returned by MODULENAME_views_api(), or the same directory as the
+ * .module file, if 'path' is unspecified.
+ *
+ * @param $view
+ *   The view object about to be processed.
+ * @param $query
+ *   An object describing the query.
+ * @see hook_views_query_substitutions()
+ */
+function lambeth_opendata_views_query_alter(&$view, &$query) {
+
+  if ($view->name == 'lambeth_opendata_documents') {
+
+//    $join = new views_join;
+//    $join->construct('search_api_item', 'node', 'nid', 'item_id');
+//    $query->add_relationship('search_api_item', $join, 'node');
+//    $query->add_field('search_api_item', 'changed');
+//
+//    $view->display['default']->display_options['fields']['status']['id'] = 'status';
+//    $view->display['default']->display_options['fields']['status']['table'] = 'search_api_item';
+//    $view->display['default']->display_options['fields']['status']['field'] = 'changed';
+//    $view->display['default']->display_options['fields']['status']['label'] = 'Status';
+    //$view->add_item($view->display['page']->id, 'field', 'search_api_item', 'changed'); //, $options = array(), $id = NULL)
   }
-  return $tax->tid;
+  return;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function lambeth_opendata_block_info() {
+  $blocks['lambeth_opendata_documents'] = array(
+    'info' => t('Lambeth Open Data Documents'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_configure().
+ */
+function lambeth_opendata_block_configure($delta = '') {
+  //global $_lambeth_opendata_types;
+  switch ($delta) {
+    case 'lambeth_opendata_documents':
+      $blocks = variable_get('lambeth_opendata_blocks', array());
+      $form[$delta . '_type'] = array(
+        '#type' => 'select',
+        '#title' => t('Type'),
+        '#description' => t('Type of documents to display in this block.'),
+        '#default_value' => isset($blocks[$delta . '_type']) ? $blocks[$delta . '_type'] : 0,
+        '#options' => lambeth_opendata_get_type_options(),
+      );
+      $form[$delta . '_limit'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Limit'),
+        '#description' => t('Maximum number of rows to display in this block. Empty or 0 for all rows'),
+        '#default_value' => isset($blocks[$delta . '_limit']) ? $blocks[$delta . '_limit'] : 0,
+      );
+    return $form;
+  }
+  return array();
+}
+
+/**
+ * Save the configuration options from hook_block_configure().
+ *
+ * This hook allows you to save the block-specific configuration settings
+ * defined within your hook_block_configure().
+ *
+ * @param $delta
+ *   Which block is being configured. This is a unique identifier for the block
+ *   within the module, defined in hook_block_info().
+ * @param $edit
+ *   The submitted form data from the configuration form.
+ *
+ * For a detailed usage example, see block_example.module.
+ *
+ * @see hook_block_configure()
+ * @see hook_block_info()
+ */
+function lambeth_opendata_block_save($delta = '', $edit = array()) {
+  if ($delta == 'lambeth_opendata_documents') {
+    $blocks = variable_get('lambeth_opendata_blocks', array());
+    $blocks[$delta . '_type'] = $edit[$delta . '_type'];
+    $blocks[$delta . '_limit'] = $edit[$delta . '_limit'];
+    variable_set('lambeth_opendata_blocks', $blocks);
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function lambeth_opendata_block_view($delta = '') {
+  if ($delta == 'lambeth_opendata_documents') {
+    $blocks = variable_get('lambeth_opendata_blocks', array());
+    $limit = isset($blocks[$delta . '_limit']) ? $blocks[$delta . '_limit'] : 0;
+    $type = isset($blocks[$delta . '_type']) ? $blocks[$delta . '_type'] : 0;
+    $rows = lambeth_opendata_documents_query($limit, $type);
+    $variables = array(
+      'data' => $rows,
+      'class' => 'lambeth_opendata_documents_block',
+    );
+    $block['content'] = theme('lambeth_opendata_documents_table', $variables);
+  }
+  return $block;
+}
+
+/**
+SELECT n.nid, n.title, n.changed, t.name, s.changed,
+IF(s.changed>0,'queued',IF(s.changed<0,'error','indexed'))
+FROM node n
+LEFT JOIN search_api_item s ON s.item_id = n.nid
+LEFT JOIN field_data_field_lambeth_doc_type f ON f.entity_id = n.nid
+LEFT JOIN taxonomy_term_data t ON t.tid = f.field_lambeth_doc_type_tid
+WHERE n.type='lambeth_opendata_document'
+ORDER BY n.changed DESC
+ *
+ * @return array
+ */
+function lambeth_opendata_documents_query($limit=0, $type=0) {
+  $query = db_select('node', 'n');
+  $query->addField('n', 'nid');
+  $query->addField('n', 'title');
+  $query->addField('n', 'changed');
+  $query->addField('t', 'name');
+  $query->addField('s', 'changed');
+  $query->leftJoin('search_api_item', 's', 's.item_id=n.nid');
+  $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
+  $query->leftJoin('taxonomy_term_data', 't', 't.tid=f.field_lambeth_doc_type_tid');
+  $query->condition('n.type', 'lambeth_opendata_document', '=');
+  $query->orderBy('n.changed', 'DESC');
+  if ($limit) {
+    $query->range(0, $limit);
+  }
+  if ($type) {
+    $query->condition('f.field_lambeth_doc_type_tid', $type, '=');
+  }
+  $res = $query->execute();
+  $result = $res->fetchAll();
+  return $result;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function lambeth_opendata_theme() {
+  return array(
+    'lambeth_opendata_documents_table'  => array(
+      'render element' => 'element',
+      'template' => 'lambeth_opendata_documents_table',
+    ),
+  );
+}
+
+/**
+ * Implements template_preprocess() to add information to the
+ * theming_example_text_form().
+ *
+ * In this example the form is preprocessed here and $text_form
+ * ($variables['text_form]) is ready to be output as prepared here when we get
+ * to theming_example_text_form.tpl.php. However, other variables are provided
+ * for use there; every key of the $variables array will be available as a
+ * variable in the template.
+ */
+function template_preprocess_lambeth_opendata_documents_table(&$variables) {
+  $variables['header'] = array('Title', 'Last Updated', 'Type', 'Status');
+  return;
+}
+
+
+/**
+ * implements hook_taxonomy_term_update
+ */
+function lambeth_opendata_taxonomy_term_update($term) {
+  lambeth_opendata_taxonomy_term_changed($term);
+}
+
+/**
+ * implements hook_taxonomy_term_insert
+ */
+function lambeth_opendata_taxonomy_term_insert($term) {
+  lambeth_opendata_taxonomy_term_changed($term);
+}
+
+/**
+ * implements hook_taxonomy_term_delete
+ */
+function lambeth_opendata_taxonomy_term_delete($term) {
+  lambeth_opendata_taxonomy_term_changed($term);
+}
+
+function lambeth_opendata_taxonomy_term_changed($term) {
+  if ($term->vocabulary_machine_name == 'lambeth_opendata_category') {
+    lambeth_opendata_cache_document_types();
+  }
 }

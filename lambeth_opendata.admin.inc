@@ -7,31 +7,36 @@
  * @ingroup
  */
 function lambeth_opendata_junk(array $form, array &$form_state) {
-//  $machine_name = 'lbl_foi_index';
-//  $type = str_replace('_index', '', str_replace('lbl_', '', $machine_name));
-  $type = lambeth_opendata_get_type_from_index_name('lbl_foi_index');
-  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
-  if (empty($tax)) {
-    $markup = t('Failed to get tid for !type', array('!type' => $type));
-  }
-  else {
-    $query = db_select('node', 'n');
-    $query->addField('n', 'nid');
-    //$query->addField('f', 'field_lambeth_doc_type_tid');
-    $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
-    $query->condition('n.type', 'lambeth_opendata_document', '=');
-    $query->condition('f.field_lambeth_doc_type_tid', $tax->tid, '=');
+  //$result = lambeth_opendata_get_document_types();
+  //$result = taxonomy_vocabulary_machine_name_load('lambeth_opendata_category');
+  //$result = taxonomy_get_tree($result->vid, 0, 1, TRUE);
+  //$result = lambeth_opendata_get_document_types(); //TRUE);
+  $result = lambeth_opendata_get_node_type_by_tid(4);
+  $result = lambeth_opendata_get_node_tid_by_type('locations');
+  $result = lambeth_opendata_get_type_options(0);
+  $markup = '<pre>' . print_r($result,1) . '</pre>';
 
-//SELECT n.nid AS nid, f.field_lambeth_doc_type_tid AS field_lambeth_doc_type_tid
-//FROM node n
-//LEFT OUTER JOIN field_data_field_lambeth_doc_type f ON f.entity_id=n.nid
-//WHERE n.type = 'lambeth_opendata_document'
-//AND f.field_lambeth_doc_type_tid = 1
-
-    $res = $query->execute();
-    $result = $res->fetchAll();
-    $markup = '<pre>' . print_r($result,1) . '</pre>';
-  }
+//  $type = lambeth_opendata_get_type_from_index_name('lbl_foi_index');
+//  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
+//  if (empty($tax)) {
+//    $markup = t('Failed to get tid for !type', array('!type' => $type));
+//  }
+//  else {
+//    $query = db_select('node', 'n');
+//    $query->addField('n', 'nid');
+//    //$query->addField('f', 'field_lambeth_doc_type_tid');
+//    $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
+//    $query->condition('n.type', 'lambeth_opendata_document', '=');
+//    $query->condition('f.field_lambeth_doc_type_tid', $tax->tid, '=');
+////SELECT n.nid AS nid, f.field_lambeth_doc_type_tid AS field_lambeth_doc_type_tid
+////FROM node n
+////LEFT OUTER JOIN field_data_field_lambeth_doc_type f ON f.entity_id=n.nid
+////WHERE n.type = 'lambeth_opendata_document'
+////AND f.field_lambeth_doc_type_tid = 1
+//    $res = $query->execute();
+//    $result = $res->fetchAll();
+//    $markup = '<pre>' . print_r($result,1) . '</pre>';
+//  }
   $form['description'] = array(
     '#markup' => $markup,
   );
@@ -40,39 +45,23 @@ function lambeth_opendata_junk(array $form, array &$form_state) {
 
 function lambeth_opendata_admin_settings(array $form, array &$form_state) {
   global $_lambeth_opendata_types;
-
-  $form['#tree'] = TRUE;
-  $form['urls'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('URLs'),
-  );
+  $markup = '<p>';
+  $markup .= 'These categories are defined in vocabulary ';
+  $markup .= l('Lambeth Open Data Category', 'admin/structure/taxonomy/lambeth_opendata_category',
+      array('attributes' => array(
+        'target' => '_blank',
+      )));
+  $markup .= '</p>';
   foreach ($_lambeth_opendata_types as $field => $values) {
-    $form['urls'][$field] = array(
-      '#type' => 'textfield',
-      '#size' => 128,
-      '#title' => t($values['label']),
-      '#default_value' => $values['url'],
-      '#required' => TRUE,
-    );
+    $markup .= '<p>Key: ' . t($field);
+    $markup .= '<br />ID: ' . $values['tid'];
+    $markup .= '<br />Label: ' . t($values['label']);
+    $markup .= '<br />Origin: ' . $values['url'] . '</p>';
   }
-  $form['urls']['save'] = array(
-    '#name' => 'cancel',
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#submit' => array('lambeth_opendata_admin_settings_submit'),
+  $form['description'] = array(
+    '#markup' => $markup,
   );
   return $form;
-}
-
-function lambeth_opendata_admin_settings_submit(array $form, array &$form_state) {
-  global $_lambeth_opendata_types;
-  foreach ($_lambeth_opendata_types as $type => $values) {
-    $url = $form_state['values']['urls'][$type];
-    if (lambeth_opendata_get_page_contents($url)) {
-      $_lambeth_opendata_types[$type]['url'] = $url;
-    }
-  }
-  variable_set('lambeth_opendata_types', serialize($_lambeth_opendata_types));
 }
 
 function lambeth_opendata_scraper(array $form, array &$form_state) {

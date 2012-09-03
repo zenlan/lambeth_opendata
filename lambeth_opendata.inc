@@ -1,12 +1,11 @@
 <?php
+
 /**
  * @file
  * Utilities for the Lambeth Open Data module.
  *
  * @ingroup
  */
-
-
 global $_lambeth_opendata_private_dir;
 $_lambeth_opendata_private_dir = 'private://lambeth_opendata/';
 
@@ -14,27 +13,41 @@ global $_lambeth_opendata_public_dir;
 $_lambeth_opendata_public_dir = 'public://lambeth_opendata/';
 
 global $_lambeth_opendata_types;
-$baseurl = 'http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/';
-$_lambeth_opendata_types_defaults = array(
-  'foi' => array(
-    'label' => 'Freedom of Information',
-    'url' => $baseurl . 'FoIDisclosureLog.htm',
-  ),
-  'locations' => array(
-    'label' => 'Locations',
-    'url' => $baseurl . 'LocationOpenData.htm',
-  ),
-  'planning' => array(
-    'label' => 'Planning Permissions',
-    'url' => $baseurl . 'PlanningPermissionsOpenData.htm',
-  ),
-  'spending' => array(
-    'label' => 'Expenditure',
-    'url' => $baseurl . 'ExpenditureOpenDataCSV.htm',
-  ),
-);
+$_lambeth_opendata_types = lambeth_opendata_get_document_types();
 
-$_lambeth_opendata_types = unserialize(variable_get('lambeth_opendata_types', serialize($_lambeth_opendata_types_defaults)));
+function lambeth_opendata_get_document_types($reset = FALSE) {
+  $result = variable_get('lambeth_opendata_types', array());
+  if ($reset || empty($result)) {
+    lambeth_opendata_cache_document_types();
+//    $result = array();
+//    $vocab = taxonomy_vocabulary_machine_name_load('lambeth_opendata_category');
+//    $tree = taxonomy_get_tree($vocab->vid, 0, 1, TRUE);
+//    foreach ($tree as $term) {
+//      $result[$term->name] = array(
+//        'label' => $term->field_document_type_label['und'][0]['value'],
+//        'url' => $term->field_document_type_origin['und'][0]['value'],
+//        'tid' => $term->tid,
+//      );
+//    }
+//    variable_set('lambeth_opendata_types', $result);
+    $result = variable_get('lambeth_opendata_types', array());
+  }
+  return $result;
+}
+
+function lambeth_opendata_cache_document_types() {
+  $result = array();
+  $vocab = taxonomy_vocabulary_machine_name_load('lambeth_opendata_category');
+  $tree = taxonomy_get_tree($vocab->vid, 0, 1, TRUE);
+  foreach ($tree as $term) {
+    $result[$term->name] = array(
+      'label' => $term->field_document_type_label['und'][0]['value'],
+      'url' => $term->field_document_type_origin['und'][0]['value'],
+      'tid' => $term->tid,
+    );
+  }
+  variable_set('lambeth_opendata_types', $result);
+}
 
 function lambeth_opendata_get_page_contents($url) {
   if (!$result = file_get_contents($url)) {
@@ -49,114 +62,146 @@ function lambeth_opendata_rewrite_datadoc($type, $url, $name) {
 }
 
 function lambeth_opendata_rewrite_locations($url, $name) {
-  $result = preg_match('/Lambeth(.*)/', $name, $matches);
-  if ($result) {
-    $type = $matches[1];
-    $fields = lambeth_opendata_map_locations_fields($type);
-    if (!empty($fields)) {
-
-      if ($data = lambeth_opendata_csv_readfile($url)) {
-        $header_from = $data[0];
-        foreach ($header_from as $k => $v) {
-          if (in_array($v, $fields)) {
-            $header_to[$k] = array_search($v, $fields);
-          }
-        }
-        unset($data[0]);
-        ksort($data);
-        $rows = array();
-        foreach ($data as $k => $v) {
-          $tmp = '';
-          foreach ($header_to as $i => $value) {
-            $rows[$k][$i] = $v[$i];
-            $tmp .= $v[$i];
-          }
-          if (!empty($tmp)) {
-            $rows[$k][] = sha1($type) . '_' . str_pad($k, 4, '0', STR_PAD_LEFT);
-            $rows[$k][] = $type;
-          }
-          else {
-            unset($rows[$k]);
-          }
-        }
-        $header_to[] = 'index';
-        $header_to[] = 'type';
-        $result = lambeth_opendata_csv_writefile($name, $header_to, $rows);
-      }
+  if (!preg_match('/Lambeth(.*)/', $name, $matches)) {
+    $msg = t('Failed to parse file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_locations', $msg);
+    return FALSE;
+  }
+  $type = $matches[1];
+  $fields = lambeth_opendata_map_locations_fields($type);
+  if (empty($fields)) {
+    $msg = t('Failed to map fields for file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_locations', $msg);
+    return FALSE;
+  }
+  if (!$data = lambeth_opendata_csv_readfile($url)) {
+    $msg = t('Failed to read file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_locations', $msg);
+    return FALSE;
+  }
+  foreach ($data[0] as $k => $v) {
+    if (in_array($v, $fields)) {
+      $header[$k] = array_search($v, $fields);
     }
   }
-  return $result;
+  unset($data[0]);
+  ksort($data);
+  $rows = array();
+  foreach ($data as $k => $v) {
+    $tmp = '';
+    foreach ($header as $i => $value) {
+      $rows[$k][$i] = $v[$i];
+      $tmp .= $v[$i];
+    }
+    if (!empty($tmp)) {
+      $rows[$k][] = sha1($type) . '_' . str_pad($k, 4, '0', STR_PAD_LEFT);
+      $rows[$k][] = $type;
+    }
+    else {
+      unset($rows[$k]);
+    }
+  }
+  $header[] = 'index';
+  $header[] = 'type';
+  if (empty($rows)) {
+    $msg = t('No rows to rewrite for file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_locations', $msg);
+    return FALSE;
+  }
+  return lambeth_opendata_csv_writefile($name, $header, $rows);
 }
 
 function lambeth_opendata_rewrite_spending($url, $name) {
-  $result = preg_match('/LambethPaymentsOver500(.*)/', $name, $matches);
-  if ($result) {
-    $array = date_parse_from_format('jMYY', '1' . $matches[1]);
-    $timestamp = mktime(0, 0, 0, $array['month'], $array['day'], $array['year']);
-    $month = date('M', $timestamp);
-    $year = date('Y', $timestamp);
-    $cols = array('Supplier', 'Total', 'Index', 'Month', 'Year');
-    if (!$data = lambeth_opendata_csv_readfile($url)) {
-      $result = FALSE;
-    }
-    $data = array_splice($data, 4);
-    $rows = array();
-    foreach ($data as $k => $v) {
-      $v[0] = trim($v[0]);
-      if (count($v) !== 2) {
-        return FALSE;
-      }
-      if (empty($v[0]) || ($v[0] == 'Grand Total')) {
-        continue;
-      }
-      $rows[$k][0] = $v[0];
-      $rows[$k][1] = ltrim(str_replace(',', '', $v[1]), '£');
-      $rows[$k][2] = $timestamp + $k;
-      $rows[$k][3] = $month;
-      $rows[$k][4] = $year;
-    }
-    $result = lambeth_opendata_csv_writefile($name, $cols, $rows);
+  if (!preg_match('/LambethPaymentsOver500(.*)/', $name, $matches)) {
+    $msg = t('Failed to parse file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_spending', $msg);
+    return FALSE;
   }
-  return $result;
+  if (!$data = lambeth_opendata_csv_readfile($url)) {
+    $msg = t('Failed to read file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_spending', $msg);
+    return FALSE;
+  }
+  $array = date_parse_from_format('jMYY', '1' . $matches[1]);
+  $timestamp = mktime(0, 0, 0, $array['month'], $array['day'], $array['year']);
+  $month = date('M', $timestamp);
+  $year = date('Y', $timestamp);
+  $header = array('Supplier', 'Total', 'Index', 'Month', 'Year');
+  $data = array_splice($data, 4);
+  $rows = array();
+  foreach ($data as $k => $v) {
+    $v[0] = trim($v[0]);
+    if (empty($v[0]) || ($v[0] == 'Grand Total')) {
+      continue;
+    }
+    if (empty($rows) && count($v) !== 2) {
+      $msg = t('Wrong column count in file !name', array('!name' => $name));
+      watchdog('lambeth_opendata_rewrite_spending', $msg);
+      return FALSE;
+    }
+    $rows[$k][0] = $v[0];
+    $rows[$k][1] = ltrim(str_replace(',', '', $v[1]), '£');
+    $rows[$k][2] = $timestamp + $k;
+    $rows[$k][3] = $month;
+    $rows[$k][4] = $year;
+  }
+  if (empty($rows)) {
+    $msg = t('No rows to rewrite for file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_spending', $msg);
+    return FALSE;
+  }
+  return lambeth_opendata_csv_writefile($name, $header, $rows);
 }
 
 function lambeth_opendata_rewrite_planning($url, $name) {
-  $result = FALSE;
-  if ($data = lambeth_opendata_csv_readfile($url)) {
-    $header = $data[0];
-    unset($data[0]);
-    foreach ($data as $k => $v) {
-      if (empty($v[3])) {
-        continue;
-      }
-      $rows[$k][0] = $v[0];
-      $rows[$k][1] = $v[1];
-      $rows[$k][2] = $v[2];
-      $rows[$k][3] = lambeth_opendata_reformat_date_string($v[3], 'd-M-y');
-      $rows[$k][4] = $v[4];
-    }
-    $result = lambeth_opendata_csv_writefile($name, $header, $rows);
+  if (!$data = lambeth_opendata_csv_readfile($url)) {
+    $msg = t('Failed to read file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_planning', $msg);
+    return FALSE;
   }
-  return $result;
+  $header = $data[0];
+  unset($data[0]);
+  foreach ($data as $k => $v) {
+    if (empty($v[3])) {
+      continue;
+    }
+    $rows[$k][0] = $v[0];
+    $rows[$k][1] = $v[1];
+    $rows[$k][2] = $v[2];
+    $rows[$k][3] = lambeth_opendata_reformat_date_string($v[3], 'd-M-y');
+    $rows[$k][4] = $v[4];
+  }
+  if (empty($rows)) {
+    $msg = t('No rows to rewrite for file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_planning', $msg);
+    return FALSE;
+  }
+  return lambeth_opendata_csv_writefile($name, $header, $rows);
 }
 
 function lambeth_opendata_rewrite_foi($url, $name) {
-  $result = FALSE;
-  if ($data = lambeth_opendata_csv_readfile($url)) {
-    $header = $data[1];
-    unset($data[0]);
-    unset($data[1]);
-    foreach ($data as $k => $v) {
-      if (empty($v[1])) {
-        continue;
-      }
-      $rows[$k][0] = $v[0];
-      $rows[$k][1] = lambeth_opendata_reformat_date_string($v[1], 'd/m/Y');
-      $rows[$k][2] = $v[2];
-    }
-    $result = lambeth_opendata_csv_writefile($name, $header, $rows);
+  if (!$data = lambeth_opendata_csv_readfile($url)) {
+    $msg = t('Failed to read file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_foi', $msg);
+    return FALSE;
   }
-  return $result;
+  $header = $data[1];
+  unset($data[0]);
+  unset($data[1]);
+  foreach ($data as $k => $v) {
+    if (empty($v[1])) {
+      continue;
+    }
+    $rows[$k][0] = $v[0];
+    $rows[$k][1] = lambeth_opendata_reformat_date_string($v[1], 'd/m/Y');
+    $rows[$k][2] = $v[2];
+  }
+  if (empty($rows)) {
+    $msg = t('No rows to rewrite for file !name', array('!name' => $name));
+    watchdog('lambeth_opendata_rewrite_foi', $msg);
+    return FALSE;
+  }
+  return lambeth_opendata_csv_writefile($name, $header, $rows);
 }
 
 function lambeth_opendata_reformat_date_string($string, $format) {
@@ -178,7 +223,7 @@ function lambeth_opendata_map_locations_fields($type) {
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
         'telephone' => 'TELEPHONE_',
-        //'other_1'=>'UPRN',
+          //'other_1'=>'UPRN',
       );
 //      'MAP_EAST'
 //      'MAP_NORTH'
@@ -187,7 +232,7 @@ function lambeth_opendata_map_locations_fields($type) {
       $fields = array(
         'name' => 'NAME',
         'address' => 'ADDRESS',
-        'openhours'=>'OPENING_TIMES',
+        'openhours' => 'OPENING_TIMES',
       );
       break;
     case 'ChildrensCentres':
@@ -203,12 +248,12 @@ function lambeth_opendata_map_locations_fields($type) {
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
         'telephone' => 'TELEPHONE',
-        'openhours'=>'OPENING_HOURS',
-        'other_1'=>'TOILETS',
-        'other_2'=>'AREA',
+        'openhours' => 'OPENING_HOURS',
+        'other_1' => 'TOILETS',
+        'other_2' => 'AREA',
       );
-      //X
-      //Y
+//X
+//Y
       break;
     case 'CoreOfficeBuildings':
       $fields = array(
@@ -216,19 +261,19 @@ function lambeth_opendata_map_locations_fields($type) {
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
       );
-      //EASTING
-      //NORTHING
+//EASTING
+//NORTHING
       break;
     case 'FoodGrowingProjects':
       $fields = array(
         'name' => 'Name',
         'address' => 'Description',
         'postcode' => 'Postcode',
-        'other_1'=>'No_',
-        'other_2'=>'Note_',
+        'other_1' => 'No_',
+        'other_2' => 'Note_',
       );
-      //Easting
-      //Northing
+//Easting
+//Northing
       break;
     case 'LeisureCentres':
       $fields = array(
@@ -237,8 +282,8 @@ function lambeth_opendata_map_locations_fields($type) {
         'postcode' => 'POSTCODE',
         'telephone' => 'TELEPHONE',
       );
-      //MAP_EAST
-      //MAP_NORTH
+//MAP_EAST
+//MAP_NORTH
       break;
     case 'Libraries':
       $fields = array(
@@ -247,15 +292,15 @@ function lambeth_opendata_map_locations_fields($type) {
         'postcode' => 'POSTCODE',
         'telephone' => 'TELEPHONE',
       );
-      //MAP_EAST
-      //MAP_NORTH
+//MAP_EAST
+//MAP_NORTH
       break;
     case 'ParkingCCTVCameras':
       $fields = array(
         'name' => 'LOCATION',
       );
-      //X
-      //Y
+//X
+//Y
       break;
     case 'PoliceStations':
       $fields = array(
@@ -263,7 +308,7 @@ function lambeth_opendata_map_locations_fields($type) {
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
         'telephone' => 'TELEPHONE',
-        'openhours'=>'HOURS',
+        'openhours' => 'HOURS',
       );
       break;
     case 'PollingStations':
@@ -271,53 +316,53 @@ function lambeth_opendata_map_locations_fields($type) {
         'name' => 'VENUE',
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
-        'other_1'=>'WARD',
-        'other_2'=>'DISTRICT_CODE',
+        'other_1' => 'WARD',
+        'other_2' => 'DISTRICT_CODE',
       );
-      //EASTING
-      //NORTHING
+//EASTING
+//NORTHING
       break;
     case 'PublicConveniences':
       $fields = array(
         'name' => 'BUILDING_NAME',
         'address' => 'PROPERTY',
-        'other_1'=>'TYPE',
+        'other_1' => 'TYPE',
       );
-      //EASTING
-      //NORTHING
+//EASTING
+//NORTHING
       break;
     case 'RecyclingBanks':
       $fields = array(
         'name' => 'LOCATION',
-        'other_1'=>'CO_MINGLED',
+        'other_1' => 'CO_MINGLED',
 //        'other_2'=>'',
 //        'other_3'=>'',
 //        'other_4'=>'',
 //        'other_5'=>'',
       );
-      //MATERIALS
-      //TEXTILES
-      //SHOES
-      //BOOKS
-      //MEDIA
-      //PRINTER_CARTRIDGES
-      //WASTE_ELECTRICAL
-      //EASTING
-      //NORTHING
+//MATERIALS
+//TEXTILES
+//SHOES
+//BOOKS
+//MEDIA
+//PRINTER_CARTRIDGES
+//WASTE_ELECTRICAL
+//EASTING
+//NORTHING
       break;
     case 'Schools':
       $fields = array(
         'name' => 'NAME',
         'address' => 'ADDRESS',
         'postcode' => 'POSTCODE',
-        'other_1'=>'TYPE',
-        'other_2'=>'ACADEMY',
+        'other_1' => 'TYPE',
+        'other_2' => 'ACADEMY',
 //        'other_3'=>'',
 //        'other_4'=>'',
 //        'other_5'=>'',
       );
-      //MAP_EAST
-      //MAP_NORTH
+//MAP_EAST
+//MAP_NORTH
       break;
     case 'WorkReadyLocations':
       $fields = array(
@@ -325,11 +370,11 @@ function lambeth_opendata_map_locations_fields($type) {
         'address' => 'Address 1',
         'postcode' => 'Postcode',
         'telephone' => 'Telephone',
-        'other_1'=>'Contact Name',
-        'other_2'=>'Email',
-        'other_3'=>'Website',
-        'other_4'=>'Description of provision',
-        'other_5'=>'Target group',
+        'other_1' => 'Contact Name',
+        'other_2' => 'Email',
+        'other_3' => 'Website',
+        'other_4' => 'Description of provision',
+        'other_5' => 'Target group',
       );
       break;
     default;
@@ -361,8 +406,19 @@ function lambeth_opendata_csv_writefile($file, $header, $rows) {
 function lambeth_opendata_csv_readfile($file) {
   if ($fh = @fopen($file, 'r')) {
     while ($rows[] = fgetcsv($fh)) {
+
     }
     return $rows;
   }
   return FALSE;
+}
+
+function lambeth_opendata_get_type_options($withall='all') {
+  global $_lambeth_opendata_types;
+  $types = $withall ? array(0 => $withall) : array();
+  foreach ($_lambeth_opendata_types as $type => $info) {
+    $types[$info['tid']] = $type;
+  }
+  ksort($types);
+  return $types;
 }
