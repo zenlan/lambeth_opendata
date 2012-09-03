@@ -530,7 +530,6 @@ function lambeth_opendata_views_pre_render(&$view) {
 //  }
 }
 
-
 /**
  * Alter the query before executing the query.
  *
@@ -570,6 +569,9 @@ function lambeth_opendata_block_info() {
   $blocks['lambeth_opendata_documents'] = array(
     'info' => t('Lambeth Open Data Documents'),
   );
+  $blocks['lambeth_opendata_documents_form'] = array(
+    'info' => t('Lambeth Open Data Documents Exposed Form'),
+  );
   return $blocks;
 }
 
@@ -577,26 +579,22 @@ function lambeth_opendata_block_info() {
  * Implementation of hook_block_configure().
  */
 function lambeth_opendata_block_configure($delta = '') {
-  //global $_lambeth_opendata_types;
   switch ($delta) {
     case 'lambeth_opendata_documents':
-      $blocks = variable_get('lambeth_opendata_blocks', array());
-      $form[$delta . '_type'] = array(
-        '#type' => 'select',
-        '#title' => t('Type'),
-        '#description' => t('Type of documents to display in this block.'),
-        '#default_value' => isset($blocks[$delta . '_type']) ? $blocks[$delta . '_type'] : 0,
-        '#options' => lambeth_opendata_get_type_options(),
-      );
-      $form[$delta . '_limit'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Limit'),
-        '#description' => t('Maximum number of rows to display in this block. Empty or 0 for all rows'),
-        '#default_value' => isset($blocks[$delta . '_limit']) ? $blocks[$delta . '_limit'] : 0,
-      );
-    return $form;
+      $form = array();
+      $form_state['input'] = lambeth_opendata_get_documents_block_defaults($delta);
+      return lambeth_opendata_documents_exposed_form($form, $form_state, $delta, TRUE);
   }
   return array();
+}
+
+function lambeth_opendata_get_documents_block_defaults($delta = '') {
+  $defaults = array(
+    $delta . '_type' => 0,
+    $delta . '_limit' => 5,
+    $delta . '_status' => -2,
+  );
+  return variable_get('lambeth_opendata_blocks', $defaults);
 }
 
 /**
@@ -618,10 +616,11 @@ function lambeth_opendata_block_configure($delta = '') {
  */
 function lambeth_opendata_block_save($delta = '', $edit = array()) {
   if ($delta == 'lambeth_opendata_documents') {
-    $blocks = variable_get('lambeth_opendata_blocks', array());
-    $blocks[$delta . '_type'] = $edit[$delta . '_type'];
-    $blocks[$delta . '_limit'] = $edit[$delta . '_limit'];
-    variable_set('lambeth_opendata_blocks', $blocks);
+    $defaults = lambeth_opendata_get_documents_block_defaults($delta);
+    $defaults[$delta . '_type'] = $edit[$delta . '_type'];
+    $defaults[$delta . '_limit'] = empty($edit[$delta . '_limit']) ? $defaults[$delta . '_limit'] : $edit[$delta . '_limit'];
+    $defaults[$delta . '_status'] = $edit[$delta . '_status'];
+    variable_set('lambeth_opendata_blocks', $defaults);
   }
 }
 
@@ -629,33 +628,113 @@ function lambeth_opendata_block_save($delta = '', $edit = array()) {
  * Implements hook_block_view().
  */
 function lambeth_opendata_block_view($delta = '') {
-  if ($delta == 'lambeth_opendata_documents') {
-    $blocks = variable_get('lambeth_opendata_blocks', array());
-    $limit = isset($blocks[$delta . '_limit']) ? $blocks[$delta . '_limit'] : 0;
-    $type = isset($blocks[$delta . '_type']) ? $blocks[$delta . '_type'] : 0;
-    $rows = lambeth_opendata_documents_query($limit, $type);
-    $variables = array(
-      'data' => $rows,
-      'class' => 'lambeth_opendata_documents_block',
-    );
-    $block['content'] = theme('lambeth_opendata_documents_table', $variables);
+  switch ($delta) {
+    case 'lambeth_opendata_documents':
+      $defaults = lambeth_opendata_get_documents_block_defaults($delta);
+      $type = isset($_GET[$delta . '_type']) ? $_GET[$delta . '_type'] : $defaults[$delta . '_type'];
+      $limit = isset($_GET[$delta . '_limit']) ? $_GET[$delta . '_limit'] : $defaults[$delta . '_limit'];
+      $status = isset($_GET[$delta . '_status']) ? $_GET[$delta . '_status'] : $defaults[$delta . '_status'];
+      $rows = lambeth_opendata_documents_query($limit, $type, $status);
+      $variables = array(
+        'data' => $rows,
+        'class' => 'lambeth_opendata_documents_block',
+      );
+      $block['content'] = theme('lambeth_opendata_documents_table', $variables);
+      break;
+    case 'lambeth_opendata_documents_form':
+      $block['content'] = drupal_get_form('lambeth_opendata_documents_exposed_form');
   }
   return $block;
 }
 
 /**
-SELECT n.nid, n.title, n.changed, t.name, s.changed,
-IF(s.changed>0,'queued',IF(s.changed<0,'error','indexed'))
-FROM node n
-LEFT JOIN search_api_item s ON s.item_id = n.nid
-LEFT JOIN field_data_field_lambeth_doc_type f ON f.entity_id = n.nid
-LEFT JOIN taxonomy_term_data t ON t.tid = f.field_lambeth_doc_type_tid
-WHERE n.type='lambeth_opendata_document'
-ORDER BY n.changed DESC
+ * @param type $form
+ * @param type $form_state
+ * @param type $delta
+ * @param type $admin
+ * @return string
+ */
+function lambeth_opendata_documents_exposed_form($form, &$form_state = array(), $delta = '', $admin = FALSE) {
+  $delta = $delta ? $delta : 'lambeth_opendata_documents';
+  $defaults = lambeth_opendata_get_documents_block_defaults($delta);
+  if (!$admin) {
+    $form = array(
+      '#title' => '',
+      '#prefix' => '<div class="container-inline">',
+      '#suffix' => '</div>',
+      '#tree' => TRUE,
+    );
+    $type = isset($_GET[$delta . '_type']) ? $_GET[$delta . '_type'] : $defaults[$delta . '_type'];
+    $limit = isset($_GET[$delta . '_limit']) ? $_GET[$delta . '_limit'] : $defaults[$delta . '_limit'];
+    $status = isset($_GET[$delta . '_status']) ? $_GET[$delta . '_status'] : $defaults[$delta . '_status'];
+  }
+  else {
+    $type = isset($form_state['input'][$delta . '_type']) ? $form_state['input'][$delta . '_type'] : $defaults[$delta . '_type'];
+    $limit = isset($form_state['input'][$delta . '_type']) ? $form_state['input'][$delta . '_limit'] : $defaults[$delta . '_limit'];
+    $status = isset($form_state['input'][$delta . '_type']) ? $form_state['input'][$delta . '_status'] : $defaults[$delta . '_status'];
+  }
+  $form[$delta . '_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Type'),
+    '#default_value' => $type,
+    '#options' => lambeth_opendata_get_type_options(),
+  );
+  $form[$delta . '_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Limit'),
+    '#default_value' => $limit,
+    '#size' => 2,
+  );
+  $form[$delta . '_status'] = array(
+    '#type' => 'select',
+    '#title' => t('Status'),
+    '#default_value' => $status,
+    '#options' => array(
+      -2 => 'all',
+      -1 => 'error',
+      0 => 'indexed',
+      1 => 'queued',
+    ),
+  );
+  if (!$admin) {
+    $form['submit'] = array(
+      '#name' => 'submit',
+      '#type' => 'submit',
+      '#value' => 'Apply',
+      '#submit' => array('lambeth_opendata_documents_exposed_form_submit'),
+    );
+  }
+  return $form;
+}
+
+function lambeth_opendata_documents_exposed_form_submit(&$form, &$form_state) {
+  $delta = 'lambeth_opendata_documents';
+  $form_state['redirect'] = array(
+    '/lambeth-opendata-documents',
+    array('query' => array(
+        $delta . '_type' => $form_state['values'][$delta . '_type'],
+        $delta . '_limit' => $form_state['values'][$delta . '_limit'],
+        $delta . '_status' => $form_state['values'][$delta . '_status'],
+      ),
+    ),
+    302,
+  );
+  return;
+}
+
+/**
+  SELECT n.nid, n.title, n.changed, t.name, s.changed,
+  IF(s.changed>0,'queued',IF(s.changed<0,'error','indexed'))
+  FROM node n
+  LEFT JOIN search_api_item s ON s.item_id = n.nid
+  LEFT JOIN field_data_field_lambeth_doc_type f ON f.entity_id = n.nid
+  LEFT JOIN taxonomy_term_data t ON t.tid = f.field_lambeth_doc_type_tid
+  WHERE n.type='lambeth_opendata_document'
+  ORDER BY n.changed DESC
  *
  * @return array
  */
-function lambeth_opendata_documents_query($limit=0, $type=0) {
+function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
   $query = db_select('node', 'n');
   $query->addField('n', 'nid');
   $query->addField('n', 'title');
@@ -667,12 +746,17 @@ function lambeth_opendata_documents_query($limit=0, $type=0) {
   $query->leftJoin('taxonomy_term_data', 't', 't.tid=f.field_lambeth_doc_type_tid');
   $query->condition('n.type', 'lambeth_opendata_document', '=');
   $query->orderBy('n.changed', 'DESC');
+  $query->orderBy('s.changed', 'ASC');
   if ($limit) {
     $query->range(0, $limit);
   }
   if ($type) {
     $query->condition('f.field_lambeth_doc_type_tid', $type, '=');
   }
+  if ($status > -2) {
+    $query->condition('s.changed', $status, '=');
+  }
+
   $res = $query->execute();
   $result = $res->fetchAll();
   return $result;
@@ -683,9 +767,13 @@ function lambeth_opendata_documents_query($limit=0, $type=0) {
  */
 function lambeth_opendata_theme() {
   return array(
-    'lambeth_opendata_documents_table'  => array(
+    'lambeth_opendata_documents_table' => array(
       'render element' => 'element',
       'template' => 'lambeth_opendata_documents_table',
+    ),
+    'lambeth_opendata_documents_exposed_form' => array(
+      'render element' => 'form',
+      'template' => 'lambeth_opendata_documents_exposed_form',
     ),
   );
 }
@@ -701,10 +789,25 @@ function lambeth_opendata_theme() {
  * variable in the template.
  */
 function template_preprocess_lambeth_opendata_documents_table(&$variables) {
-  $variables['header'] = array('Title', 'Last Updated', 'Type', 'Status');
+  $variables['header'] = array('Document Title', 'Last Updated', 'Type', 'Status');
   return;
 }
 
+function template_preprocess_lambeth_opendata_documents_exposed_form(&$variables) {
+  $variables['filters'] = array();
+  $hidden = array();
+  foreach (element_children($variables['form']) as $key) {
+    $type = $variables['form'][$key]['#type'];
+    if ($type == 'hidden' || $type == 'token') {
+      $hidden[] = drupal_render($variables['form'][$key]);
+    }
+    else {
+      $variables['filters_form'][$key] = drupal_render($variables['form'][$key]);
+    }
+  }
+  $variables['filters_form']['hidden'] = implode($hidden);
+  $variables['filters'] = implode($variables['filters_form']);
+}
 
 /**
  * implements hook_taxonomy_term_update

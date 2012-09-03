@@ -1,7 +1,8 @@
 name = Lambeth Open Data Feature
 core = 7.x
 package = Lambeth
-version = 7.x-1.0
+php = 5.2.4
+version = 7.x-1.1
 project = lambeth_opendata_feature
 dependencies[] = features
 dependencies[] = file
@@ -15,5 +16,7 @@ features[field][] = node-lambeth_opendata_document-field_lambeth_doc_name
 features[field][] = node-lambeth_opendata_document-field_lambeth_doc_type
 features[field][] = node-lambeth_opendata_document-field_lambeth_doc_uid
 features[field][] = node-lambeth_opendata_document-field_lambeth_doc_url
+features[field][] = taxonomy_term-lambeth_opendata_category-field_document_type_label
+features[field][] = taxonomy_term-lambeth_opendata_category-field_document_type_origin
 features[node][] = lambeth_opendata_document
 features[taxonomy][] = lambeth_opendata_category
