@@ -23,7 +23,7 @@
         <td><?php $title = pathauto_cleanstring($v->title); echo l($v->title, 'document/' . $title); ?></td>
         <td><?php echo date('d M Y H:m', $v->changed); ?></td>
         <td><?php echo $v->name; ?></td>
-        <td><?php echo $v->s_changed > 0 ? 'queued' : $v->s_changed < 0 ? 'error' :'indexed'; ?></td>
+        <td><?php echo $v->s_changed > 0 ? 'queued' : ($v->s_changed < 0 ? 'error' :'indexed'); ?></td>
       </tr>
       <?php
     }

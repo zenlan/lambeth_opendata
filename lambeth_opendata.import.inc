@@ -41,7 +41,7 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
       $node->path['pathauto'] = 1;
       $node->path['alias'] = '';
       $node->log = 'This node revision was imported on ' . date('c');
-      $node->status = 0;
+      $node->status = 1;
       $node->type = 'lambeth_opendata_document';
       $node->body = '';
     }
