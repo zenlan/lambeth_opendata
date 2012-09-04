@@ -11,10 +11,20 @@ function lambeth_opendata_junk(array $form, array &$form_state) {
   //$result = taxonomy_vocabulary_machine_name_load('lambeth_opendata_category');
   //$result = taxonomy_get_tree($result->vid, 0, 1, TRUE);
   //$result = lambeth_opendata_get_document_types(); //TRUE);
-  $result = lambeth_opendata_get_node_type_by_tid(4);
-  $result = lambeth_opendata_get_node_tid_by_type('locations');
-  $result = lambeth_opendata_get_type_options(0);
-  $markup = '<pre>' . print_r($result,1) . '</pre>';
+//  $result = lambeth_opendata_get_node_type_by_tid(4);
+//  $result = lambeth_opendata_get_node_tid_by_type('locations');
+//  $result = lambeth_opendata_get_type_options(0);
+
+  $markup = '';
+  module_load_include('inc', 'lambeth_opendata_feature', 'lambeth_opendata_feature.features.field');
+  $fields = lambeth_opendata_feature_field_default_fields();
+  foreach ($fields as $k => $v) {
+    $instance = $v['field_instance'];
+    $config = $v['field_config'];
+    $type = $instance['entity_type'];
+    $markup .= '<pre>' .$k . '<br />' . print_r($type,1) . '</pre>';
+  }
+
 
 //  $type = lambeth_opendata_get_type_from_index_name('lbl_foi_index');
 //  $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
@@ -81,40 +91,40 @@ function lambeth_opendata_scraper_submit(array $form, array &$form_state) {
   lambeth_opendata_batch_init();
 }
 
-function lambeth_opendata_cache(array $form, array &$form_state) {
-  global $_lambeth_opendata_types;
-  $form['#tree'] = TRUE;
-  $form['read'] = array(
-    '#name' => 'cancel',
-    '#type' => 'submit',
-    '#value' => t('Read Cache'),
-    '#submit' => array('lambeth_opendata_cache_submit_read'),
-  );
-  $form['clear'] = array(
-    '#name' => 'cancel',
-    '#type' => 'submit',
-    '#value' => t('Clear Cache'),
-    '#submit' => array('lambeth_opendata_cache_submit_clear'),
-  );
-  return $form;
-}
-
-function lambeth_opendata_cache_submit_read(array $form, array &$form_state) {
-  global $_lambeth_opendata_types;
-  $result = array();
-  foreach ($_lambeth_opendata_types as $type => $values) {
-    $result['lambeth_opendata_' . $type] = cache_get('lambeth_opendata_' . $type);
-  }
-  drupal_set_message(print_r($result, TRUE));
-  return $result;
-}
-
-function lambeth_opendata_cache_submit_clear(array $form, array &$form_state) {
-  global $_lambeth_opendata_types;
-  foreach ($_lambeth_opendata_types as $type => $values) {
-    cache_clear_all('lambeth_opendata_' . $type, 'cache');
-  }
-}
+//function lambeth_opendata_cache(array $form, array &$form_state) {
+//  global $_lambeth_opendata_types;
+//  $form['#tree'] = TRUE;
+//  $form['read'] = array(
+//    '#name' => 'cancel',
+//    '#type' => 'submit',
+//    '#value' => t('Read Cache'),
+//    '#submit' => array('lambeth_opendata_cache_submit_read'),
+//  );
+//  $form['clear'] = array(
+//    '#name' => 'cancel',
+//    '#type' => 'submit',
+//    '#value' => t('Clear Cache'),
+//    '#submit' => array('lambeth_opendata_cache_submit_clear'),
+//  );
+//  return $form;
+//}
+//
+//function lambeth_opendata_cache_submit_read(array $form, array &$form_state) {
+//  global $_lambeth_opendata_types;
+//  $result = array();
+//  foreach ($_lambeth_opendata_types as $type => $values) {
+//    $result['lambeth_opendata_' . $type] = cache_get('lambeth_opendata_' . $type);
+//  }
+//  drupal_set_message(print_r($result, TRUE));
+//  return $result;
+//}
+//
+//function lambeth_opendata_cache_submit_clear(array $form, array &$form_state) {
+//  global $_lambeth_opendata_types;
+//  foreach ($_lambeth_opendata_types as $type => $values) {
+//    cache_clear_all('lambeth_opendata_' . $type, 'cache');
+//  }
+//}
 
 function lambeth_opendata_entities(array $form, array &$form_state) {
 

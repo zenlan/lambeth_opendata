@@ -37,25 +37,21 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
       foreach ($items as $id => $item) {
         $node = node_load($id, NULL, TRUE);
         if (!is_object($node)) {
-          $msg = t('Failed to load node %id', array('%id' => $id));
-          watchdog('LambethOpendDataSolrService', $msg);
+          watchdog('LambethOpendDataSolrService', 'Failed to load node %id', array('%id' => $id));
           continue;
         }
         $node_file = (object) $node->field_lambeth_doc_file[LANGUAGE_NONE][0];
         if (!is_file($node_file->uri)) {
-          $msg = t('File %file not found', array('%file' => $node_file->uri));
-          watchdog('LambethOpendDataSolrService', $msg);
+          watchdog('LambethOpendDataSolrService', 'File %file not found', array('%file' => $node_file->uri));
           continue;
         }
         $url = file_create_url($node_file->uri);
         if (!$tmpfile = lambeth_opendata_rewrite_datadoc($type, $url, $node->field_lambeth_doc_name[LANGUAGE_NONE][0]['value'])) {
-          $msg = t('Failed to rewrite %file', array('%file' => $node_file->uri));
-          watchdog('LambethOpendDataSolrService', $msg);
+          watchdog('LambethOpendDataSolrService', 'Failed to rewrite %file', array('%file' => $node_file->uri));
           continue;
         }
         if (!$post_data = file_get_contents($tmpfile)) {
-          $msg = t('Failed to get contents of %file', array('%file' => $node_file->uri));
-          watchdog('LambethOpendDataSolrService', $msg);
+          watchdog('LambethOpendDataSolrService', 'Failed to get contents of %file', array('%file' => $node_file->uri));
           continue;
         }
         $response = $this->solr->addCSV($post_data);
@@ -63,8 +59,7 @@ class LambethOpendDataSolrService extends SearchApiSolrService {
           $result[] = $id;
         }
         else {
-          $msg = t('HTTP status @status: @msg.', array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage()));
-          watchdog('LambethOpendDataSolrService', $msg);
+          watchdog('LambethOpendDataSolrService', 'HTTP status @status: @msg.', array('@status' => $response->getHttpStatus(), '@msg' => $response->getHttpStatusMessage()));
         }
       }
       if (!empty($result) && !empty($index->options['index_directly'])) {

@@ -1,11 +1,11 @@
 <?php
+
 /**
  * @file
  * Utilities for the Lambeth Open Data module.
  *
  * @ingroup
  */
-
 module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.import');
 
 function lambeth_opendata_batch_init() {
@@ -62,8 +62,7 @@ function lambeth_opendata_batch_finished($success, $results, $operations) {
 function lambeth_opendata_scrape($url) {
 
   if (!$tmp = lambeth_opendata_get_page_contents($url)) {
-    $msg = t('Failed to retrieve content from !url', array('!url' => $url));
-    watchdog('lambeth_opendata', $msg);
+    watchdog('lambeth_opendata', 'Failed to retrieve content from !url', array('!url' => $url));
     return FALSE;
   }
   $result = array();
@@ -81,13 +80,11 @@ function lambeth_opendata_scrape($url) {
         $result[] = $tmp;
       }
       else {
-        $msg = t('EXCEPTION: FILE IS NOT CSV !file', array('!file' => $tmp['basename']));
-        watchdog('lambeth_opendata', $msg);
+        watchdog('lambeth_opendata', 'EXCEPTION: FILE IS NOT CSV !file', array('!file' => $tmp['basename']));
       }
     }
     return $result;
   }
-  $msg = t('No CSV files found at !url', array('!url' => $url));
-  watchdog('lambeth_opendata', $msg);
+  watchdog('lambeth_opendata', 'No CSV files found at !url', array('!url' => $url));
   return FALSE;
 }

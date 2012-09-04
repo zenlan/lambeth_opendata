@@ -16,14 +16,15 @@
  *  log details
  */
 function lambeth_opendata_import($type, $data) {
+  $result = array();
   foreach ($data as $k => $v) {
     $v['nid'] = _lambeth_opendata_get_node_by_uid($v['uid']);
     if ($v['file_obj'] = _lambeth_opendata_upload_file_managed($type, $v)) {
-      _lambeth_opendata_node_new_datadoc($type, $v);
+      $result[] = _lambeth_opendata_node_new_datadoc($type, $v);
     }
-    //return TRUE;
+    //return $result;
   }
-  return TRUE;
+  return $result;
 }
 
 function _lambeth_opendata_node_new_datadoc($type, $data) {
@@ -50,15 +51,11 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
     $node->field_lambeth_doc_name[$node->language][0]['value'] = $data['filename'];
     $node->field_lambeth_doc_url[$node->language][0]['value'] = $data['dirname'];
     $node->field_lambeth_doc_filename[$node->language][0]['value'] = $data['basename'];
-
-    $tax = array_pop(taxonomy_get_term_by_name($type, 'lambeth_opendata_category'));
-    if (empty($tax)) {
-      watchdog('lambeth_opendata', t('Failed to get tid for !type', array('!type' => $type)));
-      $tax = new stdClass();
-      $tax->tid = 0;
+    if (!$tid = lambeth_opendata_get_node_tid_by_type($type)) {
+      watchdog('_lambeth_opendata_node_new_datadoc', t('Failed to get tid for !type', array('!type' => $type)));
+      return FALSE;
     }
-    $node->field_lambeth_doc_type[$node->language][0] = $tax->tid;
-
+    $node->field_lambeth_doc_type[$node->language][0] = $tid;
     $field_doc = array(
       'fid' => $data['file_obj']->fid,
       'filename' => $data['file_obj']->filename,
@@ -74,11 +71,13 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
     node_save($node);
     if (!$node->nid) {
       watchdog('lambeth_opendata', t('Node did not return nid for !type', array('!type' => $type)));
+      return FALSE;
     }
   } catch (Exception $e) {
     watchdog('lambeth_opendata', t('Exception: !e', array('!e' => $e->getMessage())));
+    return FALSE;
   }
-  return TRUE;
+  return $node->nid;
 }
 
 function _lambeth_opendata_upload_file_managed($type, $data) {

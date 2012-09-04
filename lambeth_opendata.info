@@ -7,6 +7,7 @@ package = Lambeth
 dependencies[] = entity
 dependencies[] = search_api_solr
 
+files[] = lambeth_opendata.test
 files[] = lambeth_opendata.admin.inc
 ;files[] = lambeth_opendata.inc
 files[] = lambeth_opendata.scraper.inc

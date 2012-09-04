@@ -5,28 +5,152 @@
  */
 
 /**
- * @see DrupalUnitTestCase
+ * @see DrupalWebTestCase
  */
-class LambethOpenDataUnitTestCase extends DrupalUnitTestCase {
+class LambethOpenDataWebTestCase extends DrupalWebTestCase {
+
+  var $vocabulary;
+  var $taxonomy;
+  var $contenttype;
+  var $fields;
+  var $vid;
+  var $terms;
+  var $types;
 
   public static function getInfo() {
     return array(
-      'name' => 'LambethOpenData unit tests',
+      'name' => 'LambethOpenData web tests',
       'description' => 'Test the Lambeth Open Data module.',
       'group' => 'LambethOpenData',
     );
   }
 
   function setUp() {
-    parent::setUp();
-    drupal_load('module', 'lambeth_opendata');
+    parent::setUp('features', 'ctools', 'entity', 'lambeth_opendata', 'lambeth_opendata_feature');
+    $this->setupFeature();
+  }
+
+  public function setupFeature() {
+    $testgroup = 'Features';
+
+    $name = 'lambeth_opendata_feature';
+    $obj = features_get_features($name);
+    $this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1), $testgroup);
+    //$components = array($name => $obj->info['features']);
+    $result = $obj->info['features']['taxonomy'][0];
+    //$this->assertTrue(isset($obj->info['features']['taxonomy']), 'TAXONOMY FEATURE: ' . $result, $testgroup);
+    $this->vocabulary = $result;
+    $result = $obj->info['features']['node'][0];
+    //$this->assertTrue(isset($obj->info['features']['node']), 'CONTENT TYPE FEATURE: ' . $result, $testgroup);
+    $this->contenttype = $result;
+    $result = $obj->info['features']['field'];
+    //$this->assertTrue(isset($obj->info['features']['field']), 'FIELDS FEATURE: ' . print_r($result, 1), $testgroup);
+    $this->fields = $result;
+
+    $vocab = taxonomy_vocabulary_machine_name_load($this->vocabulary);
+    $this->vid = $vocab->vid;
+    $this->types = array(
+      1 => 'foi',
+      2 => 'locations',
+      3 => 'planning',
+      4 => 'spending'
+    );
+    foreach ($this->types as $k => $type) {
+      $term = $this->createTerm($type, $this->vid);
+    }
+    $types = lambeth_opendata_get_document_types(TRUE);
+    $tid = lambeth_opendata_get_node_tid_by_type('locations');
   }
 
   /**
+   * Array (
+   * [foi] => Array (
+   * [label] => Freedom of Information
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm
+   * [tid] => 1
+   * )
+   * [locations] => Array (
+   * [label] => Locations
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm
+   * [tid] => 4
+   * )
+   * [planning] => Array (
+   * [label] => Planning Permissions
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm
+   * [tid] => 3
+   * )
+   * [spending] => Array (
+   * [label] => Expenditure
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm
+   * [tid] => 2
+   * )
+   * )
    */
   public function testLambethOpenDataBasic() {
-
     $testgroup = 'Basic';
 
+    global $_lambeth_opendata_private_dir;
+    $result = $_lambeth_opendata_private_dir;
+    $this->assertFalse(empty($_lambeth_opendata_private_dir), 'PRIV DIR CONST: ' . print_r($result, 1), $testgroup);
+
+    global $_lambeth_opendata_public_dir;
+    $result = $_lambeth_opendata_public_dir;
+    $this->assertFalse(empty($_lambeth_opendata_public_dir), 'PUBLIC DIR CONST: ' . print_r($result, 1), $testgroup);
+
+    global $_lambeth_opendata_types;
+    $result = $_lambeth_opendata_types;
+    $this->assertFalse(empty($_lambeth_opendata_types), 'CLEARED DATA TYPES CONST: ' . print_r($result, 1), $testgroup);
   }
 
+  public function testLambethOpenDataTypes() {
+    $testgroup = 'Types';
+
+    $result = taxonomy_vocabulary_machine_name_load($this->vocabulary);
+    $this->assertFalse(empty($result), 'VOCABULARY LOAD: ' . print_r($result, 1), $testgroup);
+
+    $result = taxonomy_get_tree($this->vid, 0, 1, TRUE);
+    $this->assertFalse(empty($result), 'TAXONOMY TREE: ' . print_r($result, 1), $testgroup);
+    $this->taxonomy = $result;
+
+    $result = lambeth_opendata_get_document_types();
+    $this->assertFalse(empty($result), 'GET DATA TYPES: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_document_types(TRUE);
+    $this->assertFalse(empty($result), 'RESET DATA TYPES: ' . print_r($result, 1), $testgroup);
+
+//  $result = lambeth_opendata_get_type_options(0);
+//  $result = lambeth_opendata_get_node_type_by_tid(4);
+//  $result = lambeth_opendata_get_node_tid_by_type('locations');
+  }
+
+  public function testLambethOpenDataNode() {
+    $testgroup = 'Node';
+
+    $result = node_type_get_names();
+    $this->assertTrue(array_key_exists($this->contenttype, $result), 'CONTENT TYPE: ' . print_r($result, 1), $testgroup);
+
+    module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.import');
+    $path = drupal_get_path('module', 'lambeth_opendata');
+    $tmp = pathinfo($path . '/test/O1O1O1O1-O1O1-O1O1-O1O1-O1O1O1O1O1O1/test.csv');
+    $tmp['uid'] = 'O1O1O1O1-O1O1-O1O1-O1O1-O1O1O1O1O1O1';
+    $tmp['title'] = 'title';
+    $data[] = $tmp;
+    $result = lambeth_opendata_import('locations', $data);
+    $this->assertTrue(is_array($result), 'IMPORT: ' . print_r($result, 1), $testgroup);
+    $nid = $result[0];
+    $result = node_load($nid);
+    $this->assertTrue(is_object($result), 'LOAD NODE: ' . print_r($result, 1), $testgroup);
+  }
+
+  function createTerm($string, $vid) {
+    $term = new stdClass();
+    $term->name = $string;
+    $term->description = $string;
+    $term->vid = $vid;
+    $term->field_document_type_label[LANGUAGE_NONE][0]['value'] = strtoupper($string);
+    $term->field_document_type_origin[LANGUAGE_NONE][0]['value'] = 'http://lambeth.co.uk/' . $string . '.html';
+    taxonomy_term_save($term);
+    return $term;
+  }
+
+}
