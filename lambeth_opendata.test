@@ -35,7 +35,7 @@ class LambethOpenDataWebTestCase extends DrupalWebTestCase {
 
     $name = 'lambeth_opendata_feature';
     $obj = features_get_features($name);
-    $this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1), $testgroup);
+    //$this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1), $testgroup);
     //$components = array($name => $obj->info['features']);
     $result = $obj->info['features']['taxonomy'][0];
     //$this->assertTrue(isset($obj->info['features']['taxonomy']), 'TAXONOMY FEATURE: ' . $result, $testgroup);
@@ -58,8 +58,6 @@ class LambethOpenDataWebTestCase extends DrupalWebTestCase {
     foreach ($this->types as $k => $type) {
       $term = $this->createTerm($type, $this->vid);
     }
-    $types = lambeth_opendata_get_document_types(TRUE);
-    $tid = lambeth_opendata_get_node_tid_by_type('locations');
   }
 
   /**
@@ -102,6 +100,19 @@ class LambethOpenDataWebTestCase extends DrupalWebTestCase {
     $this->assertFalse(empty($_lambeth_opendata_types), 'CLEARED DATA TYPES CONST: ' . print_r($result, 1), $testgroup);
   }
 
+  public function testLambethOpenDataMisc() {
+    $testgroup = 'Misc';
+
+    $result = lambeth_opendata_map_locations_fields('WorkReadyLocations');
+    $this->assertTrue(is_array($result), 'MAP LOC FIELDS: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_reformat_date_string('01/02/2012', 'd/m/Y');
+    $this->assertEqual($result, '2012-02-01T0:00:00Z', 'REFORMAT DATE: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_reformat_date_string('01-Feb-12', 'd-M-y');
+    $this->assertEqual($result, '2012-02-01T0:00:00Z', 'REFORMAT DATE: ' . print_r($result, 1), $testgroup);
+  }
+
   public function testLambethOpenDataTypes() {
     $testgroup = 'Types';
 
@@ -118,9 +129,14 @@ class LambethOpenDataWebTestCase extends DrupalWebTestCase {
     $result = lambeth_opendata_get_document_types(TRUE);
     $this->assertFalse(empty($result), 'RESET DATA TYPES: ' . print_r($result, 1), $testgroup);
 
-//  $result = lambeth_opendata_get_type_options(0);
-//  $result = lambeth_opendata_get_node_type_by_tid(4);
-//  $result = lambeth_opendata_get_node_tid_by_type('locations');
+    $result = lambeth_opendata_get_type_options(0);
+    $this->assertFalse(empty($result), 'TYPE OPTIONS: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_node_tid_by_type('locations');
+    $this->assertEqual($result, 4, 'TID BY TYPE: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_node_type_by_tid(4);
+    $this->assertEqual($result, 'locations', 'TYPE BY TID: ' . print_r($result, 1), $testgroup);
   }
 
   public function testLambethOpenDataNode() {
@@ -140,6 +156,25 @@ class LambethOpenDataWebTestCase extends DrupalWebTestCase {
     $nid = $result[0];
     $result = node_load($nid);
     $this->assertTrue(is_object($result), 'LOAD NODE: ' . print_r($result, 1), $testgroup);
+  }
+
+  public function testLambethOpenDataStuff() {
+
+//    lambeth_opendata_csv_writefile($file, $header, $rows);
+//    lambeth_opendata_csv_readfile($file);
+//
+//    lambeth_opendata_get_page_contents($url);
+//    lambeth_opendata_rewrite_datadoc($type, $url, $name);
+//    lambeth_opendata_rewrite_locations($url, $name);
+//    lambeth_opendata_rewrite_spending($url, $name);
+//    lambeth_opendata_rewrite_planning($url, $name);
+//    lambeth_opendata_rewrite_foi($url, $name);
+//
+//    lambeth_opendata_foi_creation_callback($values, $entity_type);
+//
+//    lambeth_opendata_block_save($delta = '', $edit = array());
+//    lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2);
+//    lambeth_opendata_trackable_entity($entity, $type);
   }
 
   function createTerm($string, $vid) {
