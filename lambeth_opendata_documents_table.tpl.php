@@ -20,10 +20,10 @@
     foreach ($data as $k => $v) {
       ?>
       <tr>
-        <td><?php $title = pathauto_cleanstring($v->title); echo l($v->title, 'document/' . $title); ?></td>
-        <td><?php echo date('d M Y H:m', $v->changed); ?></td>
-        <td><?php echo $v->name; ?></td>
-        <td><?php echo $v->s_changed > 0 ? 'queued' : ($v->s_changed < 0 ? 'error' :'indexed'); ?></td>
+        <td><?php $title = pathauto_cleanstring($v->node_title); echo l($v->node_title, 'document/' . $title); ?></td>
+        <td><?php echo date('d M Y H:m', $v->node_changed); ?></td>
+        <td><?php echo $v->term_name; ?></td>
+        <td><?php echo ($v->search_changed > 0 ? 'queued' : ($v->search_changed < 0 ? 'error' :'indexed')); ?></td>
       </tr>
       <?php
     }

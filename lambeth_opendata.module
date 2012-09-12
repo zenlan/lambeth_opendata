@@ -559,6 +559,9 @@ function lambeth_opendata_block_info() {
   $blocks['lambeth_opendata_documents'] = array(
     'info' => t('Lambeth Open Data Documents'),
   );
+  $blocks['lambeth_opendata_documents_istat'] = array(
+    'info' => t('Lambeth Open Data Documents Index Status'),
+  );
   $blocks['lambeth_opendata_documents_form'] = array(
     'info' => t('Lambeth Open Data Documents Exposed Form'),
   );
@@ -581,7 +584,7 @@ function lambeth_opendata_block_configure($delta = '') {
 function lambeth_opendata_get_documents_block_defaults($delta = '') {
   $defaults = array(
     $delta . '_type' => 0,
-    $delta . '_limit' => 5,
+    $delta . '_limit' => 25,
     $delta . '_status' => -2,
   );
   return variable_get('lambeth_opendata_blocks', $defaults);
@@ -630,6 +633,14 @@ function lambeth_opendata_block_view($delta = '') {
         'class' => 'lambeth_opendata_documents_block',
       );
       $block['content'] = theme('lambeth_opendata_documents_table', $variables);
+      break;
+    case 'lambeth_opendata_documents_istat':
+      $indexes = lambeth_openadata_documents_index_check();
+      $variables = array(
+        'indexes' => $indexes,
+        'class' => 'lambeth_opendata_documents_istat',
+      );
+      $block['content'] = theme('lambeth_opendata_documents_istat', $variables);
       break;
     case 'lambeth_opendata_documents_form':
       $block['content'] = drupal_get_form('lambeth_opendata_documents_exposed_form');
@@ -727,14 +738,16 @@ function lambeth_opendata_documents_exposed_form_submit(&$form, &$form_state) {
 function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
   $query = db_select('node', 'n');
   $query->addField('n', 'nid');
-  $query->addField('n', 'title');
-  $query->addField('n', 'changed');
-  $query->addField('t', 'name');
-  $query->addField('s', 'changed');
+  $query->addField('n', 'title', 'node_title');
+  $query->addField('n', 'changed', 'node_changed');
+  $query->addField('t', 'name', 'term_name');
+  $query->addField('s', 'changed', 'search_changed');
   $query->leftJoin('search_api_item', 's', 's.item_id=n.nid');
+  $query->leftJoin('search_api_index', 'i', 'i.id=s.index_id');
   $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
   $query->leftJoin('taxonomy_term_data', 't', 't.tid=f.field_lambeth_doc_type_tid');
   $query->condition('n.type', 'lambeth_opendata_document', '=');
+  $query->condition('i.machine_name', 'lbl_document_index', '=');
   $query->orderBy('n.changed', 'DESC');
   $query->orderBy('s.changed', 'ASC');
   if ($limit) {
@@ -746,7 +759,17 @@ function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
   if ($status > -2) {
     $query->condition('s.changed', $status, '=');
   }
+  $res = $query->execute();
+  $result = $res->fetchAll();
+  return $result;
+}
 
+function lambeth_openadata_documents_index_check() {
+  $query = db_select('search_api_index', 'i');
+  $query->addField('i', 'item_type');
+  $query->addField('i', 'enabled');
+  $query->condition('i.module', 'lambeth_opendata_solr', '=');
+  $query->condition('i.item_type', 'node', '!=');
   $res = $query->execute();
   $result = $res->fetchAll();
   return $result;
@@ -760,6 +783,10 @@ function lambeth_opendata_theme() {
     'lambeth_opendata_documents_table' => array(
       'render element' => 'element',
       'template' => 'lambeth_opendata_documents_table',
+    ),
+    'lambeth_opendata_documents_istat' => array(
+      'render element' => 'element',
+      'template' => 'lambeth_opendata_documents_istat',
     ),
     'lambeth_opendata_documents_exposed_form' => array(
       'render element' => 'form',
