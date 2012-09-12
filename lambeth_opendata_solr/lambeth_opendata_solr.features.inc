@@ -171,7 +171,7 @@ function lambeth_opendata_solr_default_search_api_index() {
         }
       }
     },
-    "enabled" : "0",
+    "enabled" : "1",
     "read_only" : "0"
   }');
   $items['lbl_locations_index'] = entity_import('search_api_index', '{

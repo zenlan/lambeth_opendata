@@ -29,13 +29,23 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '40';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['style_plugin'] = 'grid';
+  $handler->display->display_options['style_options']['columns'] = '2';
   $handler->display->display_options['row_plugin'] = 'fields';
+  $handler->display->display_options['row_options']['inline'] = array(
+    'Ref' => 'Ref',
+    'Received' => 'Received',
+  );
+  $handler->display->display_options['row_options']['separator'] = ' ';
   /* Field: Indexed Lambeth Open Data FoI Entity: Ref */
   $handler->display->display_options['fields']['Ref']['id'] = 'Ref';
   $handler->display->display_options['fields']['Ref']['table'] = 'search_api_index_lbl_foi_index';
   $handler->display->display_options['fields']['Ref']['field'] = 'Ref';
+  $handler->display->display_options['fields']['Ref']['element_wrapper_type'] = 'strong';
   $handler->display->display_options['fields']['Ref']['separator'] = '';
   $handler->display->display_options['fields']['Ref']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data FoI Entity: Received */
@@ -62,6 +72,12 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['sorts']['search_api_relevance']['table'] = 'search_api_index_lbl_foi_index';
   $handler->display->display_options['sorts']['search_api_relevance']['field'] = 'search_api_relevance';
   $handler->display->display_options['sorts']['search_api_relevance']['order'] = 'DESC';
+  /* Sort criterion: Indexed Lambeth Open Data FoI Entity: Received */
+  $handler->display->display_options['sorts']['Received']['id'] = 'Received';
+  $handler->display->display_options['sorts']['Received']['table'] = 'search_api_index_lbl_foi_index';
+  $handler->display->display_options['sorts']['Received']['field'] = 'Received';
+  $handler->display->display_options['sorts']['Received']['order'] = 'DESC';
+  $handler->display->display_options['sorts']['Received']['expose']['label'] = 'Received';
   /* Filter criterion: Search: Fulltext search */
   $handler->display->display_options['filters']['search_api_views_fulltext']['id'] = 'search_api_views_fulltext';
   $handler->display->display_options['filters']['search_api_views_fulltext']['table'] = 'search_api_index_lbl_foi_index';
@@ -102,44 +118,63 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '50';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['style_plugin'] = 'grid';
+  $handler->display->display_options['style_options']['grouping'] = array(
+    0 => array(
+      'field' => 'type',
+      'rendered' => 1,
+      'rendered_strip' => 0,
+    ),
+  );
   $handler->display->display_options['row_plugin'] = 'fields';
   /* Field: Indexed Lambeth Open Data Locations Entity: index */
   $handler->display->display_options['fields']['index']['id'] = 'index';
   $handler->display->display_options['fields']['index']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['index']['field'] = 'index';
+  $handler->display->display_options['fields']['index']['exclude'] = TRUE;
   $handler->display->display_options['fields']['index']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: type */
   $handler->display->display_options['fields']['type']['id'] = 'type';
   $handler->display->display_options['fields']['type']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['type']['field'] = 'type';
-  $handler->display->display_options['fields']['type']['label'] = 'Type';
+  $handler->display->display_options['fields']['type']['label'] = '';
+  $handler->display->display_options['fields']['type']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['type']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['type']['element_wrapper_type'] = 'strong';
   $handler->display->display_options['fields']['type']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['name']['field'] = 'name';
-  $handler->display->display_options['fields']['name']['label'] = 'Name';
+  $handler->display->display_options['fields']['name']['label'] = '';
+  $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['name']['element_wrapper_type'] = 'strong';
   $handler->display->display_options['fields']['name']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: address */
   $handler->display->display_options['fields']['address']['id'] = 'address';
   $handler->display->display_options['fields']['address']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['address']['field'] = 'address';
-  $handler->display->display_options['fields']['address']['label'] = 'Address';
+  $handler->display->display_options['fields']['address']['label'] = '';
+  $handler->display->display_options['fields']['address']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['address']['hide_empty'] = TRUE;
   $handler->display->display_options['fields']['address']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: postcode */
   $handler->display->display_options['fields']['postcode']['id'] = 'postcode';
   $handler->display->display_options['fields']['postcode']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['postcode']['field'] = 'postcode';
-  $handler->display->display_options['fields']['postcode']['label'] = 'Postcode';
+  $handler->display->display_options['fields']['postcode']['label'] = '';
+  $handler->display->display_options['fields']['postcode']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['postcode']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: telephone */
   $handler->display->display_options['fields']['telephone']['id'] = 'telephone';
   $handler->display->display_options['fields']['telephone']['table'] = 'search_api_index_lbl_locations_index';
   $handler->display->display_options['fields']['telephone']['field'] = 'telephone';
-  $handler->display->display_options['fields']['telephone']['label'] = 'Telephone';
+  $handler->display->display_options['fields']['telephone']['label'] = '';
+  $handler->display->display_options['fields']['telephone']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['telephone']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Locations Entity: openhours */
   $handler->display->display_options['fields']['openhours']['id'] = 'openhours';
@@ -207,6 +242,86 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['filters']['type']['expose']['operator'] = 'type_op';
   $handler->display->display_options['filters']['type']['expose']['identifier'] = 'type';
   $handler->display->display_options['filters']['type']['expose']['multiple'] = TRUE;
+  $handler->display->display_options['filters']['type']['is_grouped'] = TRUE;
+  $handler->display->display_options['filters']['type']['group_info']['label'] = 'type';
+  $handler->display->display_options['filters']['type']['group_info']['identifier'] = 'type';
+  $handler->display->display_options['filters']['type']['group_info']['group_items'] = array(
+    1 => array(
+      'title' => 'Public Conveniences',
+      'operator' => '=',
+      'value' => 'PublicConveniences',
+    ),
+    2 => array(
+      'title' => 'Recycling Banks',
+      'operator' => '=',
+      'value' => 'RecyclingBanks',
+    ),
+    3 => array(
+      'title' => 'Schools',
+      'operator' => '=',
+      'value' => 'Schools',
+    ),
+    4 => array(
+      'title' => 'Work Ready Locations',
+      'operator' => '=',
+      'value' => 'WorkReadyLocations',
+    ),
+    5 => array(
+      'title' => 'Adventure Playgrounds',
+      'operator' => '=',
+      'value' => 'AdventurePlaygrounds',
+    ),
+    6 => array(
+      'title' => 'Childrens Centres',
+      'operator' => '=',
+      'value' => 'ChildrensCentres',
+    ),
+    7 => array(
+      'title' => 'Community Toilets',
+      'operator' => '=',
+      'value' => 'CommunityToilets',
+    ),
+    8 => array(
+      'title' => 'Car Parks',
+      'operator' => '=',
+      'value' => 'CarParks',
+    ),
+    9 => array(
+      'title' => 'Food Growing Projects',
+      'operator' => '=',
+      'value' => 'FoodGrowingProjects',
+    ),
+    10 => array(
+      'title' => 'Leisure Centres',
+      'operator' => '=',
+      'value' => 'LeisureCentres',
+    ),
+    11 => array(
+      'title' => 'Libraries',
+      'operator' => '=',
+      'value' => 'Libraries',
+    ),
+    12 => array(
+      'title' => 'Core Office Buildings',
+      'operator' => '=',
+      'value' => 'CoreOfficeBuildings',
+    ),
+    13 => array(
+      'title' => 'Parking CCTV Cameras',
+      'operator' => '=',
+      'value' => 'ParkingCCTVCameras',
+    ),
+    14 => array(
+      'title' => 'Police Stations',
+      'operator' => '=',
+      'value' => 'PoliceStations',
+    ),
+    15 => array(
+      'title' => 'Polling Stations',
+      'operator' => '=',
+      'value' => 'PollingStations',
+    ),
+  );
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
@@ -234,17 +349,48 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['exposed_form']['type'] = 'input_required';
+  $handler->display->display_options['exposed_form']['options']['reset_button'] = TRUE;
+  $handler->display->display_options['exposed_form']['options']['text_input_required'] = '';
+  $handler->display->display_options['exposed_form']['options']['text_input_required_format'] = 'filtered_html';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '40';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['style_plugin'] = 'grid';
+  $handler->display->display_options['style_options']['columns'] = '2';
   $handler->display->display_options['row_plugin'] = 'fields';
+  $handler->display->display_options['row_options']['inline'] = array(
+    'REFVAL' => 'REFVAL',
+    'DECSN' => 'DECSN',
+    'DATEDECISS' => 'DATEDECISS',
+  );
+  $handler->display->display_options['row_options']['separator'] = ':   ';
   /* Field: Indexed Lambeth Open Data Planning Entity: REFVAL */
   $handler->display->display_options['fields']['REFVAL']['id'] = 'REFVAL';
   $handler->display->display_options['fields']['REFVAL']['table'] = 'search_api_index_lbl_planning_index';
   $handler->display->display_options['fields']['REFVAL']['field'] = 'REFVAL';
   $handler->display->display_options['fields']['REFVAL']['label'] = 'Reference';
+  $handler->display->display_options['fields']['REFVAL']['element_wrapper_type'] = 'strong';
   $handler->display->display_options['fields']['REFVAL']['link_to_entity'] = 0;
+  /* Field: Indexed Lambeth Open Data Planning Entity: DECSN */
+  $handler->display->display_options['fields']['DECSN']['id'] = 'DECSN';
+  $handler->display->display_options['fields']['DECSN']['table'] = 'search_api_index_lbl_planning_index';
+  $handler->display->display_options['fields']['DECSN']['field'] = 'DECSN';
+  $handler->display->display_options['fields']['DECSN']['label'] = 'Decision';
+  $handler->display->display_options['fields']['DECSN']['element_wrapper_type'] = 'strong';
+  $handler->display->display_options['fields']['DECSN']['link_to_entity'] = 0;
+  /* Field: Indexed Lambeth Open Data Planning Entity: DATEDECISS */
+  $handler->display->display_options['fields']['DATEDECISS']['id'] = 'DATEDECISS';
+  $handler->display->display_options['fields']['DATEDECISS']['table'] = 'search_api_index_lbl_planning_index';
+  $handler->display->display_options['fields']['DATEDECISS']['field'] = 'DATEDECISS';
+  $handler->display->display_options['fields']['DATEDECISS']['label'] = '';
+  $handler->display->display_options['fields']['DATEDECISS']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['DATEDECISS']['element_wrapper_type'] = 'strong';
+  $handler->display->display_options['fields']['DATEDECISS']['date_format'] = 'custom';
+  $handler->display->display_options['fields']['DATEDECISS']['custom_date_format'] = 'd M Y';
+  $handler->display->display_options['fields']['DATEDECISS']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Planning Entity: ADDRESS */
   $handler->display->display_options['fields']['ADDRESS']['id'] = 'ADDRESS';
   $handler->display->display_options['fields']['ADDRESS']['table'] = 'search_api_index_lbl_planning_index';
@@ -257,20 +403,6 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['fields']['PROPOSAL']['field'] = 'PROPOSAL';
   $handler->display->display_options['fields']['PROPOSAL']['label'] = 'Proposal';
   $handler->display->display_options['fields']['PROPOSAL']['link_to_entity'] = 0;
-  /* Field: Indexed Lambeth Open Data Planning Entity: DECSN */
-  $handler->display->display_options['fields']['DECSN']['id'] = 'DECSN';
-  $handler->display->display_options['fields']['DECSN']['table'] = 'search_api_index_lbl_planning_index';
-  $handler->display->display_options['fields']['DECSN']['field'] = 'DECSN';
-  $handler->display->display_options['fields']['DECSN']['label'] = 'Decision';
-  $handler->display->display_options['fields']['DECSN']['link_to_entity'] = 0;
-  /* Field: Indexed Lambeth Open Data Planning Entity: DATEDECISS */
-  $handler->display->display_options['fields']['DATEDECISS']['id'] = 'DATEDECISS';
-  $handler->display->display_options['fields']['DATEDECISS']['table'] = 'search_api_index_lbl_planning_index';
-  $handler->display->display_options['fields']['DATEDECISS']['field'] = 'DATEDECISS';
-  $handler->display->display_options['fields']['DATEDECISS']['label'] = 'Date';
-  $handler->display->display_options['fields']['DATEDECISS']['date_format'] = 'custom';
-  $handler->display->display_options['fields']['DATEDECISS']['custom_date_format'] = 'd M Y';
-  $handler->display->display_options['fields']['DATEDECISS']['link_to_entity'] = 0;
   /* Sort criterion: Search: Relevance */
   $handler->display->display_options['sorts']['search_api_relevance']['id'] = 'search_api_relevance';
   $handler->display->display_options['sorts']['search_api_relevance']['table'] = 'search_api_index_lbl_planning_index';
@@ -280,29 +412,81 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['filters']['search_api_views_fulltext']['id'] = 'search_api_views_fulltext';
   $handler->display->display_options['filters']['search_api_views_fulltext']['table'] = 'search_api_index_lbl_planning_index';
   $handler->display->display_options['filters']['search_api_views_fulltext']['field'] = 'search_api_views_fulltext';
+  $handler->display->display_options['filters']['search_api_views_fulltext']['group'] = 1;
   $handler->display->display_options['filters']['search_api_views_fulltext']['exposed'] = TRUE;
   $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['operator_id'] = 'search_api_views_fulltext_op';
-  $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['label'] = 'Search';
+  $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['label'] = 'Address (keywords)';
   $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['operator'] = 'search_api_views_fulltext_op';
   $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['identifier'] = 'query';
+  $handler->display->display_options['filters']['search_api_views_fulltext']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+  );
+  $handler->display->display_options['filters']['search_api_views_fulltext']['fields'] = array(
+    'ADDRESS' => 'ADDRESS',
+    'PROPOSAL' => 'PROPOSAL',
+  );
   /* Filter criterion: Indexed Lambeth Open Data Planning Entity: DATEDECISS */
   $handler->display->display_options['filters']['DATEDECISS']['id'] = 'DATEDECISS';
   $handler->display->display_options['filters']['DATEDECISS']['table'] = 'search_api_index_lbl_planning_index';
   $handler->display->display_options['filters']['DATEDECISS']['field'] = 'DATEDECISS';
+  $handler->display->display_options['filters']['DATEDECISS']['operator'] = '<=';
+  $handler->display->display_options['filters']['DATEDECISS']['group'] = 1;
   $handler->display->display_options['filters']['DATEDECISS']['exposed'] = TRUE;
   $handler->display->display_options['filters']['DATEDECISS']['expose']['operator_id'] = 'DATEDECISS_op';
   $handler->display->display_options['filters']['DATEDECISS']['expose']['label'] = 'Date';
+  $handler->display->display_options['filters']['DATEDECISS']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['DATEDECISS']['expose']['operator'] = 'DATEDECISS_op';
   $handler->display->display_options['filters']['DATEDECISS']['expose']['identifier'] = 'DATEDECISS';
+  $handler->display->display_options['filters']['DATEDECISS']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+  );
+  $handler->display->display_options['filters']['DATEDECISS']['group_info']['label'] = 'DATEDECISS';
+  $handler->display->display_options['filters']['DATEDECISS']['group_info']['identifier'] = 'DATEDECISS';
+  $handler->display->display_options['filters']['DATEDECISS']['group_info']['remember'] = FALSE;
+  $handler->display->display_options['filters']['DATEDECISS']['group_info']['group_items'] = array(
+    1 => array(),
+    2 => array(),
+    3 => array(),
+  );
   /* Filter criterion: Indexed Lambeth Open Data Planning Entity: REFVAL */
   $handler->display->display_options['filters']['REFVAL']['id'] = 'REFVAL';
   $handler->display->display_options['filters']['REFVAL']['table'] = 'search_api_index_lbl_planning_index';
   $handler->display->display_options['filters']['REFVAL']['field'] = 'REFVAL';
+  $handler->display->display_options['filters']['REFVAL']['group'] = 1;
   $handler->display->display_options['filters']['REFVAL']['exposed'] = TRUE;
   $handler->display->display_options['filters']['REFVAL']['expose']['operator_id'] = 'REFVAL_op';
   $handler->display->display_options['filters']['REFVAL']['expose']['label'] = 'Ref';
   $handler->display->display_options['filters']['REFVAL']['expose']['operator'] = 'REFVAL_op';
   $handler->display->display_options['filters']['REFVAL']['expose']['identifier'] = 'REFVAL';
+  /* Filter criterion: Indexed Lambeth Open Data Planning Entity: DECSN */
+  $handler->display->display_options['filters']['DECSN']['id'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['table'] = 'search_api_index_lbl_planning_index';
+  $handler->display->display_options['filters']['DECSN']['field'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['exposed'] = TRUE;
+  $handler->display->display_options['filters']['DECSN']['expose']['operator_id'] = 'DECSN_op';
+  $handler->display->display_options['filters']['DECSN']['expose']['label'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['expose']['operator'] = 'DECSN_op';
+  $handler->display->display_options['filters']['DECSN']['expose']['identifier'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['is_grouped'] = TRUE;
+  $handler->display->display_options['filters']['DECSN']['group_info']['label'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['group_info']['identifier'] = 'DECSN';
+  $handler->display->display_options['filters']['DECSN']['group_info']['widget'] = 'radios';
+  $handler->display->display_options['filters']['DECSN']['group_info']['group_items'] = array(
+    1 => array(
+      'title' => 'Granted',
+      'operator' => '=',
+      'value' => 'PER',
+    ),
+    2 => array(
+      'title' => 'Denied',
+      'operator' => '<>',
+      'value' => 'PER',
+    ),
+  );
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
@@ -330,16 +514,55 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['exposed_form']['type'] = 'input_required';
+  $handler->display->display_options['exposed_form']['options']['reset_button'] = TRUE;
+  $handler->display->display_options['exposed_form']['options']['text_input_required'] = '';
+  $handler->display->display_options['exposed_form']['options']['text_input_required_format'] = 'filtered_html';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['pager']['options']['items_per_page'] = '10';
-  $handler->display->display_options['style_plugin'] = 'default';
-  $handler->display->display_options['row_plugin'] = 'fields';
-  $handler->display->display_options['row_options']['inline'] = array(
+  $handler->display->display_options['pager']['options']['items_per_page'] = '40';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'Index' => 'Index',
+    'Supplier' => 'Supplier',
+    'Total' => 'Total',
     'Month' => 'Month',
     'Year' => 'Year',
   );
-  $handler->display->display_options['row_options']['separator'] = ' ';
+  $handler->display->display_options['style_options']['default'] = 'Total';
+  $handler->display->display_options['style_options']['info'] = array(
+    'Index' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'Supplier' => array(
+      'align' => 'views-align-left',
+      'separator' => ':  ',
+      'empty_column' => 0,
+    ),
+    'Total' => array(
+      'sortable' => 1,
+      'default_sort_order' => 'desc',
+      'align' => 'views-align-right',
+      'separator' => '  ',
+      'empty_column' => 0,
+    ),
+    'Month' => array(
+      'align' => 'views-align-left',
+      'separator' => ' ',
+      'empty_column' => 0,
+    ),
+    'Year' => array(
+      'align' => 'views-align-left',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+  );
   /* Field: Indexed Lambeth Open Data Spending Entity: Index */
   $handler->display->display_options['fields']['Index']['id'] = 'Index';
   $handler->display->display_options['fields']['Index']['table'] = 'search_api_index_lbl_spending_index';
@@ -351,13 +574,17 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['fields']['Supplier']['id'] = 'Supplier';
   $handler->display->display_options['fields']['Supplier']['table'] = 'search_api_index_lbl_spending_index';
   $handler->display->display_options['fields']['Supplier']['field'] = 'Supplier';
+  $handler->display->display_options['fields']['Supplier']['label'] = '';
+  $handler->display->display_options['fields']['Supplier']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['Supplier']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Spending Entity: Total */
   $handler->display->display_options['fields']['Total']['id'] = 'Total';
   $handler->display->display_options['fields']['Total']['table'] = 'search_api_index_lbl_spending_index';
   $handler->display->display_options['fields']['Total']['field'] = 'Total';
+  $handler->display->display_options['fields']['Total']['label'] = '';
   $handler->display->display_options['fields']['Total']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['Total']['alter']['text'] = '£[Total]';
+  $handler->display->display_options['fields']['Total']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['Total']['set_precision'] = TRUE;
   $handler->display->display_options['fields']['Total']['precision'] = '2';
   $handler->display->display_options['fields']['Total']['link_to_entity'] = 0;
@@ -365,6 +592,8 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['fields']['Month']['id'] = 'Month';
   $handler->display->display_options['fields']['Month']['table'] = 'search_api_index_lbl_spending_index';
   $handler->display->display_options['fields']['Month']['field'] = 'Month';
+  $handler->display->display_options['fields']['Month']['label'] = '';
+  $handler->display->display_options['fields']['Month']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['Month']['link_to_entity'] = 0;
   /* Field: Indexed Lambeth Open Data Spending Entity: Year */
   $handler->display->display_options['fields']['Year']['id'] = 'Year';
@@ -373,11 +602,11 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['fields']['Year']['label'] = '';
   $handler->display->display_options['fields']['Year']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['Year']['link_to_entity'] = 0;
-  /* Sort criterion: Search: Relevance */
-  $handler->display->display_options['sorts']['search_api_relevance']['id'] = 'search_api_relevance';
-  $handler->display->display_options['sorts']['search_api_relevance']['table'] = 'search_api_index_lbl_spending_index';
-  $handler->display->display_options['sorts']['search_api_relevance']['field'] = 'search_api_relevance';
-  $handler->display->display_options['sorts']['search_api_relevance']['order'] = 'DESC';
+  /* Sort criterion: Indexed Lambeth Open Data Spending Entity: Total */
+  $handler->display->display_options['sorts']['Total']['id'] = 'Total';
+  $handler->display->display_options['sorts']['Total']['table'] = 'search_api_index_lbl_spending_index';
+  $handler->display->display_options['sorts']['Total']['field'] = 'Total';
+  $handler->display->display_options['sorts']['Total']['order'] = 'DESC';
   /* Filter criterion: Search: Fulltext search */
   $handler->display->display_options['filters']['search_api_views_fulltext']['id'] = 'search_api_views_fulltext';
   $handler->display->display_options['filters']['search_api_views_fulltext']['table'] = 'search_api_index_lbl_spending_index';
@@ -392,13 +621,18 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['filters']['Total']['id'] = 'Total';
   $handler->display->display_options['filters']['Total']['table'] = 'search_api_index_lbl_spending_index';
   $handler->display->display_options['filters']['Total']['field'] = 'Total';
-  $handler->display->display_options['filters']['Total']['operator'] = '>=';
+  $handler->display->display_options['filters']['Total']['operator'] = '>';
   $handler->display->display_options['filters']['Total']['group'] = 1;
   $handler->display->display_options['filters']['Total']['exposed'] = TRUE;
   $handler->display->display_options['filters']['Total']['expose']['operator_id'] = 'Total_op';
-  $handler->display->display_options['filters']['Total']['expose']['label'] = 'Total greater than';
+  $handler->display->display_options['filters']['Total']['expose']['label'] = 'Sum greater than';
   $handler->display->display_options['filters']['Total']['expose']['operator'] = 'Total_op';
   $handler->display->display_options['filters']['Total']['expose']['identifier'] = 'Total';
+  $handler->display->display_options['filters']['Total']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+  );
   /* Filter criterion: Indexed Lambeth Open Data Spending Entity: Month */
   $handler->display->display_options['filters']['Month']['id'] = 'Month';
   $handler->display->display_options['filters']['Month']['table'] = 'search_api_index_lbl_spending_index';
@@ -419,6 +653,32 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['filters']['Year']['expose']['label'] = 'Year';
   $handler->display->display_options['filters']['Year']['expose']['operator'] = 'Year_op';
   $handler->display->display_options['filters']['Year']['expose']['identifier'] = 'Year';
+  $handler->display->display_options['filters']['Year']['expose']['remember_roles'] = array(
+    2 => '2',
+    1 => 0,
+    3 => 0,
+  );
+  $handler->display->display_options['filters']['Year']['group_info']['label'] = 'Year';
+  $handler->display->display_options['filters']['Year']['group_info']['identifier'] = 'Year';
+  $handler->display->display_options['filters']['Year']['group_info']['multiple'] = TRUE;
+  $handler->display->display_options['filters']['Year']['group_info']['group_items'] = array(
+    1 => array(
+      'title' => '2012',
+      'operator' => '=',
+      'value' => '2012',
+    ),
+    2 => array(
+      'title' => '2011',
+      'operator' => '=',
+      'value' => '2011',
+    ),
+    3 => array(
+      'title' => '2010',
+      'operator' => '=',
+      'value' => '2012',
+    ),
+    4 => array(),
+  );
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
