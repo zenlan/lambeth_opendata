@@ -559,12 +559,18 @@ function lambeth_opendata_block_info() {
   $blocks['lambeth_opendata_documents'] = array(
     'info' => t('Lambeth Open Data Documents'),
   );
-  $blocks['lambeth_opendata_documents_istat'] = array(
-    'info' => t('Lambeth Open Data Documents Index Status'),
-  );
+//  $blocks['lambeth_opendata_documents_istat'] = array(
+//    'info' => t('Lambeth Open Data Documents Index Status'),
+//  );
   $blocks['lambeth_opendata_documents_form'] = array(
     'info' => t('Lambeth Open Data Documents Exposed Form'),
   );
+  $indexes = lambeth_openadata_documents_get_indexes();
+  foreach ($indexes as $idx) {
+    $blocks['lambeth_' . $idx] = array(
+      'info' => t('Lambeth Open Data Index Status: ' . $idx),
+    );
+  }
   return $blocks;
 }
 
@@ -577,6 +583,8 @@ function lambeth_opendata_block_configure($delta = '') {
       $form = array();
       $form_state['input'] = lambeth_opendata_get_documents_block_defaults($delta);
       return lambeth_opendata_documents_exposed_form($form, $form_state, $delta, TRUE);
+//    case 'lambeth_opendata_documents_istat':
+//      return $form;
   }
   return array();
 }
@@ -634,16 +642,26 @@ function lambeth_opendata_block_view($delta = '') {
       );
       $block['content'] = theme('lambeth_opendata_documents_table', $variables);
       break;
-    case 'lambeth_opendata_documents_istat':
-      $indexes = lambeth_openadata_documents_index_check();
-      $variables = array(
-        'indexes' => $indexes,
-        'class' => 'lambeth_opendata_documents_istat',
-      );
-      $block['content'] = theme('lambeth_opendata_documents_istat', $variables);
-      break;
+//    case 'lambeth_opendata_documents_istat':
+//      $indexes = lambeth_openadata_documents_index_check();
+//      $variables = array(
+//        'indexes' => $indexes,
+//        'class' => 'lambeth_opendata_documents_istat',
+//      );
+//      $block['content'] = theme('lambeth_opendata_documents_istat', $variables);
+//      break;
     case 'lambeth_opendata_documents_form':
       $block['content'] = drupal_get_form('lambeth_opendata_documents_exposed_form');
+    default:
+      if ($i = preg_match('/lambeth_(lbl_(.*)_index)/', $delta, $matches)) {
+        $indexes = lambeth_openadata_documents_index_check($matches[1]);
+        $variables = array(
+          'indexes' => $indexes,
+          'class' => 'lambeth_opendata_documents_istat',
+        );
+        $block['content'] = theme('lambeth_opendata_documents_istat', $variables);
+      }
+      break;
   }
   return $block;
 }
@@ -711,7 +729,7 @@ function lambeth_opendata_documents_exposed_form($form, &$form_state = array(), 
 function lambeth_opendata_documents_exposed_form_submit(&$form, &$form_state) {
   $delta = 'lambeth_opendata_documents';
   $form_state['redirect'] = array(
-    '/lambeth-opendata-documents',
+    '/lambeth-open-data-documents',
     array('query' => array(
         $delta . '_type' => $form_state['values'][$delta . '_type'],
         $delta . '_limit' => $form_state['values'][$delta . '_limit'],
@@ -764,14 +782,27 @@ function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
   return $result;
 }
 
-function lambeth_openadata_documents_index_check() {
+function lambeth_openadata_documents_index_check($index='') {
   $query = db_select('search_api_index', 'i');
-  $query->addField('i', 'item_type');
+  $query->addField('i', 'name');
   $query->addField('i', 'enabled');
   $query->condition('i.module', 'lambeth_opendata_solr', '=');
   $query->condition('i.item_type', 'node', '!=');
+  if ($index) {
+    $query->condition('i.machine_name', $index, '=');
+  }
   $res = $query->execute();
   $result = $res->fetchAll();
+  return $result;
+}
+
+function lambeth_openadata_documents_get_indexes() {
+  $query = db_select('search_api_index', 'i');
+  $query->addField('i', 'machine_name');
+  $query->condition('i.module', 'lambeth_opendata_solr', '=');
+  $query->condition('i.item_type', 'node', '!=');
+  $res = $query->execute();
+  $result = $res->fetchCol();
   return $result;
 }
 

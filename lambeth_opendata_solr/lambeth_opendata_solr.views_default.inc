@@ -22,7 +22,7 @@ function lambeth_opendata_solr_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Lambeth Freedom of Information Requests';
+  $handler->display->display_options['title'] = 'Freedom of Information Requests';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -93,8 +93,8 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['path'] = 'lambeth_foi';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Lambeth FoI';
-  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['title'] = 'Freedom of Information';
+  $handler->display->display_options['menu']['weight'] = '40';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $handler->display->display_options['menu']['context'] = 0;
   $export['lambeth_opendata_foi'] = $view;
@@ -111,7 +111,7 @@ function lambeth_opendata_solr_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Lambeth Open Data Locations';
+  $handler->display->display_options['title'] = 'Council Facilities';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -328,7 +328,8 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['path'] = 'lambeth-locations';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Lambeth Locations';
+  $handler->display->display_options['menu']['title'] = 'Council Facilities';
+  $handler->display->display_options['menu']['weight'] = '10';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $export['lambeth_opendata_locations'] = $view;
 
@@ -344,7 +345,7 @@ function lambeth_opendata_solr_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Lambeth Open Data Planning';
+  $handler->display->display_options['title'] = 'Planning Decisions';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -493,7 +494,8 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['path'] = 'lambeth-planning';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Lambeth Planning';
+  $handler->display->display_options['menu']['title'] = 'Planning Decisions';
+  $handler->display->display_options['menu']['weight'] = '20';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $export['lambeth_opendata_planning'] = $view;
 
@@ -509,7 +511,7 @@ function lambeth_opendata_solr_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Lambeth Open Data Spending';
+  $handler->display->display_options['title'] = 'Spending (amounts > £500)';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
@@ -685,7 +687,8 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['path'] = 'lambeth-spending';
   $handler->display->display_options['menu']['type'] = 'normal';
-  $handler->display->display_options['menu']['title'] = 'Lambeth Spending';
+  $handler->display->display_options['menu']['title'] = 'Spending';
+  $handler->display->display_options['menu']['weight'] = '30';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $export['lambeth_opendata_spending'] = $view;
 
