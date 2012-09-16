@@ -123,6 +123,7 @@ function lambeth_opendata_solr_views_default_views() {
   $handler->display->display_options['pager']['options']['id'] = '0';
   $handler->display->display_options['pager']['options']['quantity'] = '9';
   $handler->display->display_options['style_plugin'] = 'grid';
+  $handler->display->display_options['style_options']['columns'] = '3';
   $handler->display->display_options['style_options']['grouping'] = array(
     0 => array(
       'field' => 'type',
