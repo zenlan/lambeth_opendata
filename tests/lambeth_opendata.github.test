@@ -49,7 +49,7 @@ class LambethOpenDataGitHubUnitTestCase extends DrupalUnitTestCase {
 
   public function setUp() {
     parent::setUp();
-    //module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.github');
+    module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.github');
     $this->moduledir = DRUPAL_ROOT . '/' . drupal_get_path('module', 'lambeth_opendata');
     $this->testdir = $this->moduledir . '/tests/';
     $this->testdata = $this->testdir . 'data/';
