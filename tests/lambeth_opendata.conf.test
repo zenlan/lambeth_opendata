@@ -1,0 +1,537 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * @see DrupalUnitTestCase
+ */
+class LambethOpenDataConfUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * Test variables, from tests/testvars.ini
+   * @var string
+   */
+  private $options = array();
+
+  /**
+   * Destination files for tests
+   * @var array
+   */
+  private $targetdata = array();
+
+  /**
+   * Module directory
+   * @var string
+   */
+  private $moduledir;
+
+  /**
+   * Tests directory
+   * @var string
+   */
+  private $testdir;
+
+  /**
+   * Source location of test data
+   * @var string
+   */
+  private $testdata;
+
+  /**
+   * Source location of test conf files
+   * @var string
+   */
+  private $testconfdir;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'LambethOpenData Config unit tests',
+      'description' => 'Test the Lambeth Open Data conf class.',
+      'group' => 'LambethOpenData',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp();
+    //module_load_include('inc', 'lambeth_opendata');
+    module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.conf');
+    $this->moduledir = DRUPAL_ROOT . '/' . drupal_get_path('module', 'lambeth_opendata');
+    $this->testdir = $this->moduledir . '/tests/';
+    $this->testdata = $this->testdir . 'data/';
+    $this->testconfdir = $this->testdir . 'conf/';
+  }
+
+  public function tearDown() {
+    parent::tearDown();
+  }
+
+  public function testLambethOpenDataStaticConf() {
+    $testgroup = 'static object';
+    $conf = lambeth_opendata_static_conf('testconf.xml', $this->testconfdir);
+    $this->assertTrue(is_a($conf, 'LambethOpendataConf'), 'CONF IS CLASS LambethOpendataConf', $testgroup);
+    $this->assertEqual($conf->get_conf_path(), $this->testconfdir, 'CONF PATH', $testgroup);
+    $this->assertEqual($conf->get_conf_file(), $this->testconfdir . 'testconf.xml', 'CONF FILE', $testgroup);
+    $array = $conf->get_conf_array();
+    $this->assertFalse(empty($array), 'CONF ARRAY ASSIGNED', $testgroup);
+    //file_put_contents('conf_array.txt', print_r($array, 1));
+  }
+
+  /**
+   * Array (
+   * [foi] => Array (
+   * [label] => Freedom of Information
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm
+   * [tid] => 1
+   * )
+   * [locations] => Array (
+   * [label] => Locations
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm
+   * [tid] => 4
+   * )
+   * [planning] => Array (
+   * [label] => Planning Permissions
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm
+   * [tid] => 3
+   * )
+   * [spending] => Array (
+   * [label] => Expenditure
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm
+   * [tid] => 2
+   * )
+   * )
+   */
+  public function testLambethOpenDataConfXML() {
+    $testgroup = 'XML';
+
+    $conf = new LambethOpendataConf('testconf.xml', $this->testconfdir);
+    $result = $conf->load_conf();
+    $this->assertTrue(is_array($result), 'CONF IS ARRAY', $testgroup);
+    $expect = $this->_lambeth_opendata_get_test_conf_array();
+
+    $key = 'root';
+    $this->diff_arrays($expect, $result, $testgroup, $key);
+
+    $key = 'source';
+    $expect1 = $expect['source'];
+    $result1 = $result['source'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+
+    $key = 'datastore';
+    $expect1 = $expect['datastore'];
+    $result1 = $result['datastore'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+
+    $key = 'datastore/datasets';
+    $expect1 = $expect['datastore']['datasets'];
+    $result1 = $result['datastore']['datasets'];
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    foreach ($expect['datastore']['datasets'] as $k => $v) {
+      $expect1 = $expect['datastore']['datasets'][$k];
+      $result1 = $result['datastore']['datasets'][$k];
+      $this->diff_arrays($expect1, $result1, $testgroup, $key . '/' . $k);
+    }
+
+    $key = 'datastore/datasets/repodataset1';
+    $expect1 = $expect['datastore']['datasets']['repodataset1'];
+    $result1 = $result['datastore']['datasets']['repodataset1'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    $key = 'datastore/datasets/repodataset1/tables';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    $key = 'datastore/datasets/repodataset1/tables/properties';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['properties'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['properties'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    foreach ($expect1 as $name => $field) {
+      $expect2 = $expect1[$name];
+      $result2 = $result1[$name];
+      $this->diff_arrays($expect2, $result2, $testgroup, $key . '/' . $name);
+    }
+    $key = 'datastore/datasets/repodataset1/tables/maps';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['maps'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['maps'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    $key = 'datastore/datasets/repodataset1/tables/maps/default';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['maps']['default'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['maps']['default'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    $key = 'datastore/datasets/repodataset1/tables/maps/default/fields';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['maps']['default']['fields'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['maps']['default']['fields'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    foreach ($expect1 as $name => $field) {
+      $expect2 = $expect1[$name];
+      $result2 = $result1[$name];
+      $this->diff_arrays($expect2, $result2, $testgroup, $key . '/' . $name);
+    }
+
+    $key = 'datastore/datasets/repodataset1/tables/maps/table1';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['maps']['table1'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['maps']['table1'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    $key = 'datastore/datasets/repodataset1/tables/maps/table1/fields';
+    $expect1 = $expect['datastore']['datasets']['repodataset1']['tables']['maps']['table1']['fields'];
+    $result1 = $result['datastore']['datasets']['repodataset1']['tables']['maps']['table1']['fields'];
+    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+    foreach ($expect1 as $name => $field) {
+      $expect2 = $expect1[$name];
+      $result2 = $result1[$name];
+      $this->diff_arrays($expect2, $result2, $testgroup, $key . '/' . $name);
+    }
+  }
+
+  public function testLambethOpenDataMethods() {
+    $testgroup = 'methods';
+    $properties = array();
+    $entities = array();
+    $conf = lambeth_opendata_static_conf('testconf.xml', $this->testconfdir);
+    $datasets = $conf->get_conf_datasets();
+    foreach ($datasets as $set => $vals) {
+      foreach ($vals['tables']['properties'] as $k => $v) {
+        $properties['lambeth_opendata_' . $set][$v['name']] = array(
+          'type' => $v['type'],
+          'label' => $v['label'],
+          'description' => $v['description'],
+        );
+      }
+      $entities['lambeth_opendata_' . $set] = array(
+        'label' => t($vals['label']),
+        'entity keys' => array(
+          'id' => $vals['tables']['maps']['default']['uniqueKey'],
+        ),
+      );
+    }
+    file_put_contents('conf_properties.txt', print_r($properties,1));
+    file_put_contents('conf_entities.txt', print_r($entities,1));
+    return;
+  }
+
+  private function diff_arrays($expect, $result, $testgroup, $key) {
+    $tmp1 = array_diff($expect, $result);
+    $this->assertTrue(empty($tmp1), 'MISSING/EXPECTED (' . $key . '): ' . print_r($tmp1, 1), $testgroup);
+    $tmp2 = array_diff($result, $expect);
+    $this->assertTrue(empty($tmp2), 'EXTRANEOUS/CHANGED (' . $key . '): ' . print_r($tmp2, 1), $testgroup);
+  }
+
+  private function _lambeth_opendata_get_test_conf_array() {
+
+    return array(
+      'name' => 'test_conf',
+      'version' => '1.0',
+      'conf_file' => $this->testconfdir,
+      'conf_path' => $this->testconfdir . 'testconf.xml',
+      'source' => array(
+        'owner' => 'London Borough of Test',
+        'name' => 'Test Open Data',
+        'url' => 'http://www.test.gov.uk/test.htm',
+        'licence' => 'http://www.test.gov.uk/licence/',
+      ),
+      'datastore' => array(
+        'owner' => 'testowner',
+        'name' => 'testdatastore',
+        'datasets' => array(
+          'repodataset1' => array(
+            'label' => 'Repo Dataset One',
+            'url' => 'https://github.com/testowner/testdatastore/tree/master/test1',
+            'source' => 'http://www.test.gov.uk/test1.htm',
+            'conf' => 'repodataset1.xml',
+            'tables' => array(
+              'name' => 'repodataset1',
+              'version' => '1.0',
+              'properties' => array(
+                'index' => array(
+                  'name' => 'index',
+                  'type' => 'text',
+                  'label' => 'Index',
+                  'description' => 'Index',
+                ),
+                'type' => array(
+                  'name' => 'type',
+                  'type' => 'text',
+                  'label' => 'Type',
+                  'description' => 'Type',
+                ),
+                'name' => array(
+                  'name' => 'name',
+                  'type' => 'text',
+                  'label' => 'Name',
+                  'description' => 'Name',
+                ),
+                'address' => array(
+                  'name' => 'address',
+                  'type' => 'text',
+                  'label' => 'Address',
+                  'description' => 'Address',
+                ),
+                'postcode' => array(
+                  'name' => 'postcode',
+                  'type' => 'text',
+                  'label' => 'Postcode',
+                  'description' => 'Postcode',
+                ),
+                'telephone' => array(
+                  'name' => 'telephone',
+                  'type' => 'text',
+                  'label' => 'Telephone',
+                  'description' => 'Telephone',
+                ),
+                'openhours' => array(
+                  'name' => 'openhours',
+                  'type' => 'text',
+                  'label' => 'Hours',
+                  'description' => 'Hours',
+                ),
+                'other_1' => array(
+                  'name' => 'other_1',
+                  'type' => 'text',
+                  'label' => 'other_1',
+                  'description' => 'other_1',
+                ),
+                'other_2' => array(
+                  'name' => 'other_2',
+                  'type' => 'text',
+                  'label' => 'other_2',
+                  'description' => 'other_2',
+                ),
+                'other_3' => array(
+                  'name' => 'other_3',
+                  'type' => 'text',
+                  'label' => 'other_3',
+                  'description' => 'other_3',
+                ),
+                'other_4' => array(
+                  'name' => 'other_4',
+                  'type' => 'text',
+                  'label' => 'other_4',
+                  'description' => 'other_4',
+                ),
+                'other_5' => array(
+                  'name' => 'other_5',
+                  'type' => 'text',
+                  'label' => 'other_5',
+                  'description' => 'other_5',
+                ),
+              ),
+              'maps' => array(
+                'default' => array(
+                  'fields' => array(
+                    'index' => array(
+                      'key' => 'index',
+                      'calculated' => '1',
+                    ),
+                    'type' => array(
+                      'key' => 'type',
+                      'calculated' => '1',
+                    ),
+                  ),
+                  'name' => 'default',
+                  'label' => 'Default Table',
+                  'uniqueKey' => 'index',
+                  'defaultSearchField' => 'name',
+                ),
+                'table1' => array(
+                  'fields' => array(
+                    'name' => array(
+                      'column' => 'test Name column',
+                      'key' => 'name',
+                    ),
+                    'address' => array(
+                      'column' => 'Test_address',
+                      'key' => 'address',
+                    ),
+                    'postcode' => array(
+                      'column' => 'Test-postcode',
+                      'key' => 'postcode',
+                    ),
+                    'telephone' => array(
+                      'column' => 'Testtelephone',
+                      'key' => 'telephone',
+                    ),
+                    'openhours' => array(
+                      'column' => 'TEST HOURS',
+                      'key' => 'openhours',
+                    ),
+                    'other_1' => array(
+                      'column' => 'Test&other1',
+                      'key' => 'other_1',
+                    ),
+                    'other_2' => array(
+                      'column' => 'TEST/other2',
+                      'key' => 'other_2',
+                    ),
+                    'other_3' => array(
+                      'column' => 'test\'Other3',
+                      'key' => 'other_3',
+                    ),
+                    'other_4' => array(
+                      'column' => 'Test,otherFour',
+                      'key' => 'other_4',
+                    ),
+                  ),
+                  'name' => 'table1',
+                  'label' => 'Table One',
+                ),
+              ),
+            ),
+          ),
+          'repodataset2' => array(
+            'label' => 'Repo Dataset Two',
+            'url' => 'https://github.com/testowner/testdatastore/tree/master/test2',
+            'source' => 'http://www.test.gov.uk/test2.htm',
+            'conf' => 'repodataset2.xml',
+            'tables' => array(
+              'name' => 'repodataset2',
+              'version' => '1.0',
+              'properties' => array(
+                'index' => array(
+                  'name' => 'index',
+                  'type' => 'text',
+                  'label' => 'Index',
+                  'description' => 'Index',
+                ),
+                'type' => array(
+                  'name' => 'type',
+                  'type' => 'text',
+                  'label' => 'Type',
+                  'description' => 'Type',
+                ),
+                'name' => array(
+                  'name' => 'name',
+                  'type' => 'text',
+                  'label' => 'Name',
+                  'description' => 'Name',
+                ),
+                'address' => array(
+                  'name' => 'address',
+                  'type' => 'text',
+                  'label' => 'Address',
+                  'description' => 'Address',
+                ),
+                'postcode' => array(
+                  'name' => 'postcode',
+                  'type' => 'text',
+                  'label' => 'Postcode',
+                  'description' => 'Postcode',
+                ),
+                'telephone' => array(
+                  'name' => 'telephone',
+                  'type' => 'text',
+                  'label' => 'Telephone',
+                  'description' => 'Telephone',
+                ),
+                'openhours' => array(
+                  'name' => 'openhours',
+                  'type' => 'text',
+                  'label' => 'Hours',
+                  'description' => 'Hours',
+                ),
+                'other_1' => array(
+                  'name' => 'other_1',
+                  'type' => 'text',
+                  'label' => 'other_1',
+                  'description' => 'other_1',
+                ),
+                'other_2' => array(
+                  'name' => 'other_2',
+                  'type' => 'text',
+                  'label' => 'other_2',
+                  'description' => 'other_2',
+                ),
+                'other_3' => array(
+                  'name' => 'other_3',
+                  'type' => 'text',
+                  'label' => 'other_3',
+                  'description' => 'other_3',
+                ),
+                'other_4' => array(
+                  'name' => 'other_4',
+                  'type' => 'text',
+                  'label' => 'other_4',
+                  'description' => 'other_4',
+                ),
+                'other_5' => array(
+                  'name' => 'other_5',
+                  'type' => 'text',
+                  'label' => 'other_5',
+                  'description' => 'other_5',
+                ),
+              ),
+              'maps' => array(
+                'default' => array(
+                  'fields' => array(
+                    'index' => array(
+                      'key' => 'index',
+                      'calculated' => '1',
+                    ),
+                    'type' => array(
+                      'key' => 'type',
+                      'calculated' => '1',
+                    ),
+                  ),
+                  'name' => 'default',
+                  'label' => 'Default Table',
+                  'uniqueKey' => 'index',
+                  'defaultSearchField' => 'name',
+                ),
+                'table1' => array(
+                  'fields' => array(
+                    'name' => array(
+                      'column' => 'test Name column',
+                      'key' => 'name',
+                    ),
+                    'address' => array(
+                      'column' => 'Test_address',
+                      'key' => 'address',
+                    ),
+                    'postcode' => array(
+                      'column' => 'Test-postcode',
+                      'key' => 'postcode',
+                    ),
+                    'telephone' => array(
+                      'column' => 'Testtelephone',
+                      'key' => 'telephone',
+                    ),
+                    'openhours' => array(
+                      'column' => 'TEST HOURS',
+                      'key' => 'openhours',
+                    ),
+                    'other_1' => array(
+                      'column' => 'Test&other1',
+                      'key' => 'other_1',
+                    ),
+                    'other_2' => array(
+                      'column' => 'TEST/other2',
+                      'key' => 'other_2',
+                    ),
+                    'other_3' => array(
+                      'column' => 'test\'Other3',
+                      'key' => 'other_3',
+                    ),
+                    'other_4' => array(
+                      'column' => 'Test,otherFour',
+                      'key' => 'other_4',
+                    ),
+                  ),
+                  'name' => 'table1',
+                  'label' => 'Table One',
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+}

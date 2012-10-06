@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="test_conf" version="1.0">
+  <source>
+    <owner>London Borough of Test</owner>
+    <name>Test Open Data</name>
+    <url>http://www.test.gov.uk/test.htm</url>
+    <licence>http://www.test.gov.uk/licence/</licence>
+  </source>
+  <datastore owner="testowner" name="testdatastore">
+    <repodataset1>
+      <label>Repo Dataset One</label>
+      <url>https://github.com/testowner/testdatastore/tree/master/test1</url>
+      <source>http://www.test.gov.uk/test1.htm</source>
+      <conf>repodataset1.xml</conf>
+    </repodataset1>
+    <repodataset2>
+      <label>Repo Dataset Two</label>
+      <url>https://github.com/testowner/testdatastore/tree/master/test2</url>
+      <source>http://www.test.gov.uk/test2.htm</source>
+      <conf>repodataset2.xml</conf>
+    </repodataset2>
+  </datastore>
+</schema>

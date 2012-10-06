@@ -1,0 +1,614 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * @see DrupalUnitTestCase
+ */
+class LambethOpenDataUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * Test variables, from tests/testvars.ini
+   * @var string
+   */
+  private $options = array();
+
+  /**
+   * Destination files for tests
+   * @var array
+   */
+  private $targetdata = array();
+
+  /**
+   * Module directory
+   * @var string
+   */
+  private $moduledir;
+
+  /**
+   * Tests directory
+   * @var string
+   */
+  private $testdir;
+
+  /**
+   * Source location of test data
+   * @var string
+   */
+  private $testdata;
+
+  /**
+   * Source location of test conf files
+   * @var string
+   */
+  private $testconfdir;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'LambethOpenData unit tests',
+      'description' => 'Test the Lambeth Open Data module.',
+      'group' => 'LambethOpenData',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp();
+//    module_load_include('inc', 'lambeth_opendata');
+//    $this->moduledir = DRUPAL_ROOT . '/' . drupal_get_path('module', 'lambeth_opendata');
+//    $this->testdir = $this->moduledir . '/tests/';
+//    $this->testdata = $this->testdir . 'data/';
+//    $this->testconfdir = $this->testdir . 'conf/';
+  }
+
+  public function tearDown() {
+    parent::tearDown();
+  }
+
+  /**
+   * Array (
+   * [foi] => Array (
+   * [label] => Freedom of Information
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm
+   * [tid] => 1
+   * )
+   * [locations] => Array (
+   * [label] => Locations
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm
+   * [tid] => 4
+   * )
+   * [planning] => Array (
+   * [label] => Planning Permissions
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm
+   * [tid] => 3
+   * )
+   * [spending] => Array (
+   * [label] => Expenditure
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm
+   * [tid] => 2
+   * )
+   * )
+   */
+//  public function testLambethOpenDataXML() {
+//    $testgroup = 'XML';
+//
+//    $conf_file = $this->testconfdir . 'testconf.xml';
+//    $xml = new SimpleXmlIterator($conf_file, null, true);
+//    $this->assertTrue(is_object($xml), 'SimpleXmlIterator opened file: ' . $conf_file, $testgroup);
+//    $result = lambeth_opendata_xml_to_array($xml);
+//    $this->assertTrue(is_array($result), 'Array returned: ' . print_r($result, 1), $testgroup);
+//    $expect = lambeth_opendata_get_test_conf_array();
+//    //file_put_contents(__DIR__ . '/tests.txt', print_r($result, 1));
+//    //$result = lambeth_opendata_get_test_conf_array_bad_result();
+//
+//    $key = 'root';
+//    $this->diff_arrays($expect, $result, $testgroup, $key);
+//
+//    $key = 'source';
+//    $expect1 = $expect['source'][0];
+//    $result1 = $result['source'][0];
+//    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+//
+//    $key = 'source/dataset';
+//    $expect1 = $expect['source'][0]['datasets'][0]['dataset'];
+//    $result1 = $result['source'][0]['datasets'][0]['dataset'];
+//    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+//    foreach ($expect['source'][0]['datasets'][0]['dataset'] as $k => $v) {
+//      $expect1 = $expect['source'][0]['datasets'][0]['dataset'][$k];
+//      $result1 = $result['source'][0]['datasets'][0]['dataset'][$k];
+//      $this->diff_arrays($expect1, $result1, $testgroup, $key . $k);
+//    }
+//
+//    $key = 'datastore';
+//    $expect1 = $expect['datastore'][0];
+//    $result1 = $result['datastore'][0];
+//    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+//
+//    $key = 'datastore/dataset';
+//    $expect1 = $expect['datastore'][0]['datasets'][0]['dataset'];
+//    $result1 = $result['datastore'][0]['datasets'][0]['dataset'];
+//    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+//    foreach ($expect['datastore'][0]['datasets'][0]['dataset'] as $k => $v) {
+//      $expect1 = $expect['datastore'][0]['datasets'][0]['dataset'][$k];
+//      $result1 = $result['datastore'][0]['datasets'][0]['dataset'][$k];
+//      $this->diff_arrays($expect1, $result1, $testgroup, $key . $k);
+//    }
+//    $expect1 = count($expect['source'][0]['datasets'][0]['dataset']);
+//    $result1 = count($result['datastore'][0]['datasets'][0]['dataset']);
+//    $this->assertEqual($expect1, $result1, 'SOURCE/DATASTORE DATASET MATCH: ' . $expect1 . '/' . $result1, $testgroup);
+//
+//
+//    $conf_file = $this->testconfdir . 'repodataset1.xml';
+//    $xml = new SimpleXmlIterator($conf_file, null, true);
+//    $this->assertTrue(is_object($xml), 'SimpleXmlIterator opened file: ' . $conf_file, $testgroup);
+//    $result = lambeth_opendata_xml_to_array($xml);
+//    //file_put_contents(__DIR__ . '/tests.txt', print_r($result, 1));
+//    $this->assertTrue(is_array($result), 'Array returned: ' . print_r($result, 1), $testgroup);
+//    $expect = lambeth_opendata_get_test_conf_dataset_array();
+//    //file_put_contents(__DIR__ . '/tests.txt', print_r($result, 1));
+//
+//    $key = 'root';
+//    $this->diff_arrays($expect, $result, $testgroup, $key);
+//
+//    $key = 'table/field';
+//    $expect1 = $expect['table'][0]['field'];
+//    $result1 = $result['table'][0]['field'];
+//    $this->diff_arrays($expect1, $result1, $testgroup, $key);
+//    $this->assertEqual(count($expect1), count($result1), 'ELEMENT COUNT (' . $key . '): ' . count($result1), $testgroup);
+//    foreach ($expect1 as $k => $v) {
+//      $expect2 = $expect1[$k];
+//      $result2 = $result1[$k];
+//      $this->diff_arrays($expect2, $result2, $testgroup, $key . $k);
+//    }
+//  }
+
+  function diff_arrays($expect, $result, $testgroup, $key) {
+    $tmp1 = array_diff($expect, $result);
+    $this->assertTrue(empty($tmp1), 'MISSING/EXPECTED (' . $key . '): ' . print_r($tmp1, 1), $testgroup);
+    $tmp2 = array_diff($result, $expect);
+    $this->assertTrue(empty($tmp2), 'EXTRANEOUS/CHANGED (' . $key . '): ' . print_r($tmp2, 1), $testgroup);
+  }
+
+}
+
+/**
+ * @see DrupalWebTestCase
+ */
+class LambethOpenDataWebTestCase extends DrupalWebTestCase {
+
+  var $vocabulary;
+  var $taxonomy;
+  var $contenttype;
+  var $fields;
+  var $vid;
+  var $terms;
+  var $types;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'LambethOpenData web tests',
+      'description' => 'Test the Lambeth Open Data module.',
+      'group' => 'LambethOpenData',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('features', 'ctools', 'entity', 'lambeth_opendata', 'lambeth_opendata_feature');
+    $this->setupFeature();
+  }
+
+  public function setupFeature() {
+    $testgroup = 'Features';
+
+    $name = 'lambeth_opendata_feature';
+    $obj = features_get_features($name);
+    //$this->assertTrue(is_object($obj), 'FEATURES OBJECT: ' . print_r($obj, 1), $testgroup);
+    //$components = array($name => $obj->info['features']);
+    $result = $obj->info['features']['taxonomy'][0];
+    //$this->assertTrue(isset($obj->info['features']['taxonomy']), 'TAXONOMY FEATURE: ' . $result, $testgroup);
+    $this->vocabulary = $result;
+    $result = $obj->info['features']['node'][0];
+    //$this->assertTrue(isset($obj->info['features']['node']), 'CONTENT TYPE FEATURE: ' . $result, $testgroup);
+    $this->contenttype = $result;
+    $result = $obj->info['features']['field'];
+    //$this->assertTrue(isset($obj->info['features']['field']), 'FIELDS FEATURE: ' . print_r($result, 1), $testgroup);
+    $this->fields = $result;
+
+    $vocab = taxonomy_vocabulary_machine_name_load($this->vocabulary);
+    $this->vid = $vocab->vid;
+    $this->types = array(
+      1 => 'foi',
+      2 => 'locations',
+      3 => 'planning',
+      4 => 'spending'
+    );
+    foreach ($this->types as $k => $type) {
+      $term = $this->createTerm($type, $this->vid);
+    }
+  }
+
+  /**
+   * Array (
+   * [foi] => Array (
+   * [label] => Freedom of Information
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm
+   * [tid] => 1
+   * )
+   * [locations] => Array (
+   * [label] => Locations
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm
+   * [tid] => 4
+   * )
+   * [planning] => Array (
+   * [label] => Planning Permissions
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm
+   * [tid] => 3
+   * )
+   * [spending] => Array (
+   * [label] => Expenditure
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm
+   * [tid] => 2
+   * )
+   * )
+   */
+  public function testLambethOpenDataBasic() {
+    $testgroup = 'Basic';
+
+    global $_lambeth_opendata_private_dir;
+    $result = $_lambeth_opendata_private_dir;
+    $this->assertFalse(empty($_lambeth_opendata_private_dir), 'PRIV DIR CONST: ' . print_r($result, 1), $testgroup);
+
+    global $_lambeth_opendata_public_dir;
+    $result = $_lambeth_opendata_public_dir;
+    $this->assertFalse(empty($_lambeth_opendata_public_dir), 'PUBLIC DIR CONST: ' . print_r($result, 1), $testgroup);
+
+    global $_lambeth_opendata_types;
+    $result = $_lambeth_opendata_types;
+    $this->assertFalse(empty($_lambeth_opendata_types), 'CLEARED DATA TYPES CONST: ' . print_r($result, 1), $testgroup);
+  }
+
+  public function testLambethOpenDataMisc() {
+    $testgroup = 'Misc';
+
+    $result = lambeth_opendata_map_locations_fields('WorkReadyLocations');
+    $this->assertTrue(is_array($result), 'MAP LOC FIELDS: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_reformat_date_string('01/02/2012', 'd/m/Y');
+    $this->assertEqual($result, '2012-02-01T0:00:00Z', 'REFORMAT DATE: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_reformat_date_string('01-Feb-12', 'd-M-y');
+    $this->assertEqual($result, '2012-02-01T0:00:00Z', 'REFORMAT DATE: ' . print_r($result, 1), $testgroup);
+  }
+
+  public function testLambethOpenDataTypes() {
+    $testgroup = 'Types';
+
+    $result = taxonomy_vocabulary_machine_name_load($this->vocabulary);
+    $this->assertFalse(empty($result), 'VOCABULARY LOAD: ' . print_r($result, 1), $testgroup);
+
+    $result = taxonomy_get_tree($this->vid, 0, 1, TRUE);
+    $this->assertFalse(empty($result), 'TAXONOMY TREE: ' . print_r($result, 1), $testgroup);
+    $this->taxonomy = $result;
+
+    $result = lambeth_opendata_get_document_types();
+    $this->assertFalse(empty($result), 'GET DATA TYPES: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_document_types(TRUE);
+    $this->assertFalse(empty($result), 'RESET DATA TYPES: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_type_options(0);
+    $this->assertFalse(empty($result), 'TYPE OPTIONS: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_node_tid_by_type('locations');
+    $this->assertEqual($result, 4, 'TID BY TYPE: ' . print_r($result, 1), $testgroup);
+
+    $result = lambeth_opendata_get_node_type_by_tid(4);
+    $this->assertEqual($result, 'locations', 'TYPE BY TID: ' . print_r($result, 1), $testgroup);
+  }
+
+  public function testLambethOpenDataNode() {
+    $testgroup = 'Node';
+
+    $result = node_type_get_names();
+    $this->assertTrue(array_key_exists($this->contenttype, $result), 'CONTENT TYPE: ' . print_r($result, 1), $testgroup);
+
+    module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.import');
+    $path = drupal_get_path('module', 'lambeth_opendata');
+    $tmp = pathinfo($path . '/tests/data/O1O1O1O1-O1O1-O1O1-O1O1-O1O1O1O1O1O1/test.csv');
+    $tmp['uid'] = 'O1O1O1O1-O1O1-O1O1-O1O1-O1O1O1O1O1O1';
+    $tmp['title'] = 'title';
+    $data[] = $tmp;
+    $result = lambeth_opendata_import('locations', $data);
+    $this->assertTrue(is_array($result), 'IMPORT: ' . print_r($result, 1), $testgroup);
+    $nid = $result[0];
+    $result = node_load($nid);
+    $this->assertTrue(is_object($result), 'LOAD NODE: ' . print_r($result, 1), $testgroup);
+  }
+
+  public function testLambethOpenDataStuff() {
+
+//    lambeth_opendata_csv_writefile($file, $header, $rows);
+//    lambeth_opendata_csv_readfile($file);
+//
+//    lambeth_opendata_get_page_contents($url);
+//    lambeth_opendata_rewrite_datadoc($type, $url, $name);
+//    lambeth_opendata_rewrite_locations($url, $name);
+//    lambeth_opendata_rewrite_spending($url, $name);
+//    lambeth_opendata_rewrite_planning($url, $name);
+//    lambeth_opendata_rewrite_foi($url, $name);
+//
+//    lambeth_opendata_foi_creation_callback($values, $entity_type);
+//
+//    lambeth_opendata_block_save($delta = '', $edit = array());
+//    lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2);
+//    lambeth_opendata_trackable_entity($entity, $type);
+  }
+
+  function createTerm($string, $vid) {
+    $term = new stdClass();
+    $term->name = $string;
+    $term->description = $string;
+    $term->vid = $vid;
+    $term->field_document_type_label[LANGUAGE_NONE][0]['value'] = strtoupper($string);
+    $term->field_document_type_origin[LANGUAGE_NONE][0]['value'] = 'http://lambeth.co.uk/' . $string . '.html';
+    taxonomy_term_save($term);
+    return $term;
+  }
+
+}
+
+class lambeth_opendata_array_udiff_uassoc {
+
+  private $priv_member;
+
+  function lambeth_opendata_array_udiff_uassoc($val) {
+    $this->priv_member = $val;
+  }
+
+  static function comp_func_cr($a, $b) {
+    if ($a->priv_member === $b->priv_member)
+      return 0;
+    return ($a->priv_member > $b->priv_member) ? 1 : -1;
+  }
+
+  static function comp_func_key($a, $b) {
+    if ($a === $b)
+      return 0;
+    return ($a > $b) ? 1 : -1;
+  }
+
+}
+
+//function lambeth_opendata_get_test_conf_array() {
+//
+//  return array(
+//    'name' => 'test_conf',
+//    'version' => '1.0',
+//    'source' => array(
+//      '0' => array(
+//        'plugin' => 'testplugin',
+//        'owner' => 'London Borough of Test',
+//        'name' => 'Test Open Data',
+//        'url' => 'http://www.test.gov.uk/test.htm',
+//        'licence' => 'http://www.test.gov.uk/licence/',
+//        'datasets' => array(
+//          '0' => array(
+//            'dataset' => array(
+//              '0' => array(
+//                'id' => '1',
+//                'name' => 'sourcedataset1',
+//                'label' => 'Source Dataset One',
+//                'url' => 'http://www.test.gov.uk/test1.htm',
+//              ),
+//              '1' => array(
+//                'id' => '2',
+//                'name' => 'sourcedataset2',
+//                'label' => 'Source Dataset Two',
+//                'url' => 'http://www.test.gov.uk/test2.htm',
+//              ),
+//            ),
+//          ),
+//        ),
+//      ),
+//    ),
+//    'datastore' => array(
+//      '0' => array(
+//        'plugin' => 'github',
+//        'owner' => 'testowner',
+//        'name' => 'testdatastore',
+//        'url' => 'https://github.com/testowner/testdatastore',
+//        'datasets' => array(
+//          '0' => array(
+//            'dataset' => array(
+//              '0' => array(
+//                'id' => '1',
+//                'name' => 'repodataset1',
+//                'label' => 'Repo Dataset One',
+//                'source' => '2',
+//                'url' => 'https://github.com/testowner/testdatastore/tree/master/test1',
+//                'conf' => 'repodataset1.xml',
+//              ),
+//              '1' => array(
+//                'id' => '2',
+//                'name' => 'repodataset2',
+//                'label' => 'Repo Dataset Two',
+//                'source' => '1',
+//                'url' => 'https://github.com/testowner/testdatastore/tree/master/test2',
+//                'conf' => 'repodataset2.xml',
+//              ),
+//            ),
+//          ),
+//        ),
+//      ),
+//    ),
+//  );
+//}
+//
+//function lambeth_opendata_get_test_conf_array_bad_result() {
+//
+//  return array(
+//    'name' => 'test_conf',
+//    'version' => '1.1',
+//    'foo' => 'bar',
+//    'source' => array(
+//      '0' => array(
+//        'plugin' => 'testplugin',
+//        'owner' => 'London Borough of Test',
+//        'name' => 'Test Open Data',
+//        'url' => 'http://www.test.gov.uk/test.htm',
+//        'licence' => 'http://www.test.gov.uk/licence/',
+//        'datasets' => array(
+//          '0' => array(
+//            'dataset' => array(
+//              '0' => array(
+//                'id' => '1',
+//                'name' => 'sourcedataset1',
+//                'label' => 'Source Dataset One',
+//                'url' => 'http://www.test.gov.uk/test1.htm',
+//              ),
+//              '1' => array(
+//                'id' => '2',
+//                'name' => 'sourcedataset2',
+//                'label' => 'Source Dataset Two',
+//                'url' => 'http://www.test.gov.uk/test2.htm',
+//              ),
+//            ),
+//          ),
+//        ),
+//      ),
+//    ),
+//    'datastore' => array(
+//      '0' => array(
+//        'plugin' => 'github',
+//        //'owner' => 'testowner',
+//        //'name' => 'testdatastore',
+//        'url' => 'https://goathub.com',
+//        'datasets' => array(
+//          '0' => array(
+//            'dataset' => array(
+//              '0' => array(
+//                'id' => '1',
+//                'name' => 'repodataset1',
+//                'label' => 'Repo Dataset One',
+//                'source' => '2',
+//                'url' => 'https://github.com/testowner/testdatastore/tree/master/test1',
+//                'conf' => 'repodataset1.xml',
+//              ),
+////              '1' => array(
+////                'id' => '2',
+////                'name' => 'repodataset2',
+////                'label' => 'Repo Dataset Two',
+////                'source' => '1',
+////                'url' => 'https://github.com/testowner/testdatastore/tree/master/test2',
+////                'conf' => 'repodataset2.xml',
+////              ),
+//            ),
+//          ),
+//        ),
+//      ),
+//    ),
+//  );
+//}
+//
+//function lambeth_opendata_get_test_conf_dataset_array() {
+//  return array(
+//    'name' => 'repodataset1',
+//    'version' => '1.0',
+//    'table' => array(
+//      '0' => array(
+//        'name' => 'default',
+//        'label' => 'Default Table',
+//        'plugin' => 'repodataset1',
+//        'field' => array(
+//          '0' => array(
+//            'column' => '',
+//            'type' => 'string',
+//            'map' => 'index',
+//            'calculated' => '1',
+//            'label' => 'Index',
+//          ),
+//          '1' => array(
+//            'column' => '',
+//            'type' => 'string',
+//            'map' => 'type',
+//            'calculated' => '1',
+//            'label' => 'Type',
+//          ),
+//          '2' => array(
+//            'column' => 'test Name column',
+//            'type' => 'text',
+//            'map' => 'name',
+//            'calculated' => '0',
+//            'label' => 'Name',
+//          ),
+//          '3' => array(
+//            'column' => 'Test_address',
+//            'type' => 'text',
+//            'map' => 'address',
+//            'calculated' => '0',
+//            'label' => 'Address',
+//          ),
+//          '4' => array(
+//            'column' => 'Test-postcode',
+//            'type' => 'text',
+//            'map' => 'postcode',
+//            'calculated' => '0',
+//            'label' => 'Postcode',
+//          ),
+//          '5' => array(
+//            'column' => 'Testtelephone',
+//            'type' => 'text',
+//            'map' => 'telephone',
+//            'calculated' => '0',
+//            'label' => 'Telephone',
+//          ),
+//          '6' => array(
+//            'column' => 'TEST HOURS',
+//            'type' => 'text',
+//            'map' => 'openhours',
+//            'calculated' => '0',
+//            'label' => 'Hours',
+//          ),
+//          '7' => array(
+//            'column' => 'Test&other1',
+//            'type' => 'text',
+//            'map' => 'other_1',
+//            'calculated' => '0',
+//            'label' => 'Other One',
+//          ),
+//          '8' => array(
+//            'column' => 'TEST/other2',
+//            'type' => 'text',
+//            'map' => 'other_2',
+//            'calculated' => '0',
+//            'label' => 'Other Two',
+//          ),
+//          '9' => array(
+//            'column' => 'test\'Other3',
+//            'type' => 'text',
+//            'map' => 'other_3',
+//            'calculated' => '0',
+//            'label' => 'Other Three',
+//          ),
+//          '10' => array(
+//            'column' => 'Test,otherFour',
+//            'type' => 'text',
+//            'map' => 'other_4',
+//            'calculated' => '0',
+//            'label' => 'Other Four',
+//          ),
+//          '11' => array(
+//            'column' => '',
+//            'type' => 'text',
+//            'map' => 'other_5',
+//            'calculated' => '0',
+//            'label' => 'Other Five',
+//          ),
+//        ),
+//        'uniqueKey' => 'index',
+//        'defaultSearchField' => 'name',
+//      ),
+//    ),
+//  );
+//}

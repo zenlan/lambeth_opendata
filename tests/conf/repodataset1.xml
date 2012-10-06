@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset name="repodataset1" version="1.0">
+  <property name="index" type="text" label="Index" description="Index" />
+  <property name="type" type="text" label="Type" description="Type" />
+  <property name="name" type="text" label="Name" description="Name" />
+  <property name="address" type="text" label="Address" description="Address" />
+  <property name="postcode" type="text" label="Postcode" description="Postcode" />
+  <property name="telephone" type="text" label="Telephone" description="Telephone" />
+  <property name="openhours" type="text" label="Hours" description="Hours" />
+  <property name="other_1" type="text" label="other_1" description="other_1" />
+  <property name="other_2" type="text" label="other_2" description="other_2" />
+  <property name="other_3" type="text" label="other_3" description="other_3" />
+  <property name="other_4" type="text" label="other_4" description="other_4" />
+  <property name="other_5" type="text" label="other_5" description="other_5" />
+  <map name="default" label="Default Table" uniqueKey="index" defaultSearchField="name">
+    <field key="index" calculated="1" />
+    <field key="type" calculated="1" />
+  </map>
+  <map name="table1" label="Table One">
+    <field column="test Name column" key="name" />
+    <field column="Test_address" key="address" />
+    <field column="Test-postcode" key="postcode" />
+    <field column="Testtelephone" key="telephone" />
+    <field column="TEST HOURS" key="openhours" />
+    <field column="Test&amp;other1" key="other_1" />
+    <field column="TEST/other2" key="other_2" />
+    <field column="test'Other3" key="other_3" />
+    <field column="Test,otherFour" key="other_4" />
+  </map>
+</dataset>

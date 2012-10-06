@@ -1,0 +1,191 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * @see DrupalUnitTestCase
+ */
+class LambethOpenDataGitHubUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * Test variables, from tests/testvars.ini
+   * @var string
+   */
+  private $options = array();
+
+  /**
+   * Destination files for tests
+   * @var array
+   */
+  private $targetdata = array();
+
+  /**
+   * Module directory
+   * @var string
+   */
+  private $moduledir;
+
+  /**
+   * Tests directory
+   * @var string
+   */
+  private $testdir;
+
+  /**
+   * Source location of test data
+   * @var string
+   */
+  private $testdata;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'LambethOpenData GitHub unit tests',
+      'description' => 'Test the Lambeth Open Data GitHub Class.',
+      'group' => 'LambethOpenData',
+    );
+  }
+
+  public function setUp() {
+    parent::setUp();
+    //module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.github');
+    $this->moduledir = DRUPAL_ROOT . '/' . drupal_get_path('module', 'lambeth_opendata');
+    $this->testdir = $this->moduledir . '/tests/';
+    $this->testdata = $this->testdir . 'data/';
+    if (!file_exists($this->testdir . 'testvars.ini')) {
+      drupal_set_message('testvars.ini not found');
+      return;
+    }
+    $this->options = parse_ini_file($this->testdir . 'testvars.ini');
+    $this->targetdata = array(
+      0 => $this->options['data_directory'] . 'foi/LBLFOIDisclosureLogJan2012.csv',
+      1 => $this->options['data_directory'] . 'locations/recycling-banks.csv',
+      2 => $this->options['data_directory'] . 'payments-to-suppliers/2012-01-payments.csv',
+      3 => $this->options['data_directory'] . 'planning/PlanningPermissionsApr2005Mar2011.csv',
+    );
+  }
+
+  public function tearDown() {
+    parent::tearDown();
+    foreach ($this->targetdata as $file) {
+      if (file_exists($file)) {
+        @@unlink($file);
+        @@rmdir(dirname($file));
+      }
+    }
+  }
+
+  /**
+   * Array (
+   * [foi] => Array (
+   * [label] => Freedom of Information
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm
+   * [tid] => 1
+   * )
+   * [locations] => Array (
+   * [label] => Locations
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm
+   * [tid] => 4
+   * )
+   * [planning] => Array (
+   * [label] => Planning Permissions
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm
+   * [tid] => 3
+   * )
+   * [spending] => Array (
+   * [label] => Expenditure
+   * [url] => http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm
+   * [tid] => 2
+   * )
+   * )
+   */
+  public function testLambethOpenDataGitHubBasic() {
+    $testgroup = 'Basic';
+    $obj = new LambethOpenDataGitHub();
+    $this->assertTrue(is_object($obj), 'DEFAULT OBJECT CREATED: ' . print_r($obj, 1), $testgroup);
+    $this->assertEqual(
+        $this->replace_backslashes($obj->get_data_directory()), $this->replace_backslashes($this->moduledir), 'DATA DIRECTORY: ' . $obj->get_data_directory(), $testgroup);
+    $this->assertEqual(
+        $obj->get_download_directory(), sys_get_temp_dir(), 'DOWNLOAD DIRECTORY: ' . $obj->get_download_directory(), $testgroup);
+    $this->assertNull($obj->get_repo_name(), 'REPO NAME: ' . $obj->get_repo_name(), $testgroup);
+    $this->assertNull($obj->get_repo_owner(), 'REPO OWNER: ' . $obj->get_repo_owner(), $testgroup);
+
+    $obj = new LambethOpenDataGitHub($this->options);
+    $this->assertTrue(is_object($obj), 'CUSTOM OBJECT CREATED: ' . print_r($obj, 1), $testgroup);
+    $this->assertEqual($obj->get_data_directory(), $this->options['data_directory'], 'DATA DIRECTORY: ' . $obj->get_data_directory(), $testgroup);
+    $this->assertEqual($obj->get_download_directory(), $this->options['download_directory'], 'DOWNLOAD DIRECTORY: ' . $obj->get_download_directory(), $testgroup);
+    $this->assertEqual($obj->get_repo_name(), $this->options['repo_name'], 'REPO NAME: ' . $obj->get_repo_name(), $testgroup);
+    $this->assertEqual($obj->get_repo_owner(), $this->options['repo_owner'], 'REPO OWNER: ' . $obj->get_repo_owner(), $testgroup);
+    $expect = 'https://api.github.com/repos/' . $this->options['repo_owner'] . '/' . $this->options['repo_name'];
+    $this->assertEqual($obj->get_repo_url(), $expect, 'REPO URL: ' . $obj->get_repo_url(), $testgroup);
+    $result = $obj->create_packed_filename();
+    $this->assertEqual($obj->get_packed_filename(), $result, 'PACKED FILE NAME: ' . $obj->get_packed_filename(), $testgroup);
+    $this->assertTrue(file_exists($result), 'PACKED FILE EXISTS', $testgroup);
+    $result = $obj->delete_packed_filename();
+    $this->assertFalse(file_exists($result), 'PACKED FILE DELETED', $testgroup);
+  }
+
+  public function testLambethOpenDataGitHubRepo() {
+    $testgroup = 'Repo';
+    $obj = new LambethOpenDataGitHub($this->options);
+    $info = $obj->get_repo_info();
+    $this->assertTrue($info, 'REPO INFO: ' . print_r($info, TRUE), $testgroup);
+    $this->assertTrue(is_object($info), 'REPO INFO RETURNED OBJECT', $testgroup);
+    $cache = new stdClass();
+    $cache->updated_at = '2012-09-21T19:35:53Z';
+    $cache->pushed_at = '2012-08-21T19:35:53Z';
+    $time_cache = strtotime($cache->pushed_at);
+    $time_live = strtotime($info->pushed_at);
+    $this->assertTrue($time_live > $time_cache, 'LAST PUSHED TIME > CACHE: ' . date('d M Y h:i:s', $time_live), $testgroup);
+
+    $commits = $obj->get_repo_commits($cache->pushed_at);
+    $this->assertTrue(is_array($commits), 'REPO COMMITS RETURNED ARRAY', $testgroup);
+    $refs = $obj->get_repo_references();
+    $this->assertTrue(is_array($refs), 'REPO REFS RETURNED ARRAY', $testgroup);
+    $this->assertEqual(count($refs), 1, 'REPO REFS COUNT = 1', $testgroup);
+    $this->assertTrue(is_object($refs[0]), 'REPO REFS[0] IS OBJECT', $testgroup);
+    $this->assertEqual($refs[0]->url, $obj->get_repo_url() . '/git/' . $refs[0]->ref, 'REPO REFS URL: ' . $refs[0]->url, $testgroup);
+    $sha = $refs[0]->object->sha; // root sha
+    $tree = $obj->get_repo_tree($sha, TRUE);
+    $this->assertTrue(is_object($tree), 'REPO TREE RETURNED OBJECT', $testgroup);
+    $this->assertTrue(is_array($tree->tree), 'REPO TREE TREE ARRAY', $testgroup);
+    $this->assertEqual($tree->sha, $sha, 'REPO TREE SHA OK', $testgroup);
+    $blob = $obj->get_repo_blob($this->options['test_blob_sha']);
+    $this->assertEqual($blob->sha, $this->options['test_blob_sha'], 'REPO BLOB SHA OK', $testgroup);
+
+  }
+
+//  public function testLambethOpenDataGitHubUnpack() {
+//    $testgroup = 'Unpack';
+//    $zipfile = $this->testdata . 'testdata.zip';
+//    $this->assertTrue(file_exists($zipfile), 'FILE EXISTS: ' . $zipfile, $testgroup);
+//    $obj = new LambethOpenDataGitHub($this->options);
+//    $result = $obj->unpack_repo($zipfile);
+//    $this->assertTrue(is_array($result), 'UNPACK RETURNED ARRAY: ' . print_r($result, 1), $testgroup);
+//    $this->assertEqual(count($result), 4, 'UNPACK ARRAY COUNT = 4 ', $testgroup);
+//    foreach ($result as $i => $file) {
+//      $this->assertEqual($this->replace_backslashes($file), $this->replace_backslashes($this->targetdata[$i]), 'UNPACK ARRAY ELEMENTS: ' . $i, $testgroup);
+//      $this->assertTrue(file_exists($file), 'FILE EXISTS: ' . $file, $testgroup);
+//    }
+//    $this->assertTrue(is_array($obj->get_datasets()), 'DATASETS ARRAY: ' . print_r($obj->get_datasets(), TRUE), $testgroup);
+//  }
+//
+//  public function testLambethOpenDataGitHubDownload() {
+//    $testgroup = 'Download';
+//    $obj = new LambethOpenDataGitHub($this->options);
+//    $expect = 'https://api.github.com/repos/zenlan/lambeth_opendatastore';
+//    $this->assertEqual($obj->get_repo_url(), $expect, 'REPO URL: ' . $obj->get_repo_url(), $testgroup);
+//    $result = $obj->download_repo();
+//    $this->assertTrue($result, 'DOWNLOADED OK: ' . $result, $testgroup);
+//    $this->assertTrue(file_exists($result), 'DOWNLOADED FILE EXISTS', $testgroup);
+//    if ($result && file_exists($result)) {
+//      @@unlink($result);
+//    }
+//  }
+
+  private function replace_backslashes($string) {
+    return str_replace('\\', '/', $string);
+  }
+
+}
