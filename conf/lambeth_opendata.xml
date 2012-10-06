@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="lambeth_opendata" version="1.0">
+  <source>
+    <owner>London Borough of Lambeth</owner>
+    <name>Lambeth Open Data</name>
+    <url>http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/OpenData.htm</url>
+    <licence>http://www.nationalarchives.gov.uk/doc/open-government-licence/</licence>
+  </source>
+  <datastore owner="zenlan" name="lambeth_opendatastore">
+    <foi>
+      <label>Freedom of Information</label>
+      <url>https://github.com/zenlan/lambeth_opendatastore/tree/master/foi</url>
+      <source>http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/FoIDisclosureLog.htm</source>
+      <conf>foi.xml</conf>
+    </foi>
+    <locations>
+      <label>Locations</label>
+      <url>https://github.com/zenlan/lambeth_opendatastore/tree/master/locations</url>
+      <source>http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/LocationOpenData.htm</source>
+      <conf>locations.xml</conf>
+    </locations>
+    <planning>
+      <label>Planning Permissions</label>
+      <url>https://github.com/zenlan/lambeth_opendatastore/tree/master/planning</url>
+      <source>http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/PlanningPermissionsOpenData.htm</source>
+      <conf>planning.xml</conf>
+    </planning>
+    <spending>
+      <label>Expenditure</label>
+      <url>https://github.com/zenlan/lambeth_opendatastore/tree/master/spending</url>
+      <source>http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/ExpenditureOpenDataCSV.htm</source>
+      <conf>spending.xml</conf>
+    </spending>
+  </datastore>
+</schema>

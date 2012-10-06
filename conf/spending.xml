@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset name="spending" version="1.0">
+  <property name="Index" type="integer" label="Index" description="Index" />
+  <property name="Total" type="decimal" label="Total" description="Total" />
+  <property name="Supplier" type="text" label="Supplier" description="Supplier" />
+  <property name="Month" type="text" label="Month" description="Month" />
+  <property name="Year" type="text" label="Year" description="Year" />
+  <map name="default" label="Default Table" uniqueKey="Index" defaultSearchField="Supplier">
+    <field column="Supplier Name" key="Supplier" />
+    <field column="Sum of Invoice Nett Amount" key="Total" />
+    <field key="Index" calculated="1" />
+    <field key="Month" calculated="1" />
+    <field key="Year" calculated="1" />
+  </map>
+</dataset>

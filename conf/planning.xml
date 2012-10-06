@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset name="planning" version="1.0">
+  <property name="REFVAL" type="text" label="REFVAL" description="REFVAL" />
+  <property name="DATEDECISS" type="date" label="DATEDECISS" description="DATEDECISS" />
+  <property name="ADDRESS" type="text" label="ADDRESS" description="ADDRESS" />
+  <property name="PROPOSAL" type="text" label="PROPOSAL" description="PROPOSAL" />
+  <property name="DECSN" type="text" label="DECSN" description="DECSN" />
+  <map name="default" label="Default Table" uniqueKey="REFVAL" defaultSearchField="ADDRESS">
+    <field column="REFVAL" key="REFVAL" />
+    <field column="DATEDECISS" key="DATEDECISS" dateformat="d-M-y"    />
+    <field column="ADDRESS" key="ADDRESS" />
+    <field column="PROPOSAL" key="PROPOSAL" />
+    <field column="DECSN" key="DECSN" />
+  </map>
+</dataset>

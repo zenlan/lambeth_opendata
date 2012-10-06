@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset name="foi" version="1.0">
+  <property name="Ref" type="integer" description="Ref" label="Ref" />
+  <property name="Received" type="date" description="Received" label="Received" />
+  <property name="Summary" type="text" description="Summary" label="Summary" />
+  <map name="default" label="Default Table" uniqueKey="Ref" defaultSearchField="Summary">
+    <field column="Ref" key="Ref" />
+    <field column="Received" key="Received" dateformat="d/m/Y"/>
+    <field column="Summary" key="Summary" />
+  </map>
+</dataset>

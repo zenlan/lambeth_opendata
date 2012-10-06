@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset name="locations" version="1.0">
+  <property name="index" type="text" label="Index" description="Index" />
+  <property name="type" type="text" label="Type" description="Type" />
+  <property name="name" type="text" label="Name" description="Name" />
+  <property name="address" type="text" label="Address" description="Address" />
+  <property name="postcode" type="text" label="Postcode" description="Postcode" />
+  <property name="telephone" type="text" label="Telephone" description="Telephone" />
+  <property name="openhours" type="text" label="Hours" description="Hours" />
+  <property name="other_1" type="text" label="other_1" description="other_1" />
+  <property name="other_2" type="text" label="other_2" description="other_2" />
+  <property name="other_3" type="text" label="other_3" description="other_3" />
+  <property name="other_4" type="text" label="other_4" description="other_4" />
+  <property name="other_5" type="text" label="other_5" description="other_5" />
+  <map name="default" label="Default Table" uniqueKey="index" defaultSearchField="name">
+    <field key="index" calculated="1" />
+    <field key="type" calculated="1" />
+  </map>
+  <map name="adventure-playgrounds" label="Adventure Playgrounds">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+  </map>
+  <map name="car-parks" label="Car Parks">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="OPENING_TIMES" key="openhours" />
+  </map>
+  <map name="childrens-centres" label="Childrens Centres">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+  </map>
+  <map name="community-toilets" label="Community Toilets">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="TELEPHONE" key="telephone" />
+    <field column="OPENING_HOURS" key="openhours" />
+    <field column="TOILETS" key="other_1" />
+    <field column="AREA" key="other_2" />
+    <field column="X" key="other_3" />
+    <field column="Y" key="other_4" />
+  </map>
+  <map name="core-office-buildings" label="Core Office Buildings">
+    <field column="OFFICE" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="EASTING" key="other_1" />
+    <field column="NORTHING" key="other_2" />
+  </map>
+  <map name="food-growing-projects" label="Food Growing Projects">
+    <field column="Name" key="name" />
+    <field column="Description" key="address" />
+    <field column="Postcode" key="postcode" />
+    <field column="No_" key="other_1" />
+    <field column="Note_" key="other_2" />
+    <field column="Easting" key="other_3" />
+    <field column="Northing" key="other_4" />
+  </map>
+  <map name="leisure-centres" label="Leisure Centres">
+    <field column="CENTRE NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="TELEPHONE" key="telephone" />
+    <field column="OPENING_HOURS" key="openhours" />
+    <field column="MAP_EAST" key="other_1" />
+    <field column="MAP_NORTH" key="other_2" />
+  </map>
+  <map name="libraries" label="Libraries">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="TELEPHONE" key="telephone" />
+    <field column="MAP_EAST" key="other_1" />
+    <field column="MAP_NORTH" key="other_2" />
+  </map>
+  <map name="parking-cctv-cameras" label="Parking CCTV Cameras">
+    <field column="LOCATION" key="name" />
+    <field column="X" key="other_1" />
+    <field column="Y" key="other_2" />
+  </map>
+  <map name="police-stations" label="Police Stations">
+    <field column="POLICE STATION NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="TELEPHONE" key="telephone" />
+    <field column="HOURS" key="openhours" />
+  </map>
+  <map name="polling-stations" label="Polling Stations">
+    <field column="VENUE" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="WARD" key="other_1" />
+    <field column="DISTRICT_CODE" key="other_2" />
+    <field column="EASTING" key="other_3" />
+    <field column="NORTHING" key="other_4" />
+  </map>
+  <map name="public-conveniences" label="Public Conveniences">
+    <field column="BUILDING_NAME" key="name" />
+    <field column="PROPERTY" key="address" />
+    <field column="TYPE" key="openhours" />
+    <field column="EASTING" key="other_1" />
+    <field column="NORTHING" key="other_2" />
+  </map>
+  <map name="recycling-banks" label="Recycling Banks">
+    <field column="LOCATION" key="name" />
+    <field column="CO_MINGLED" key="other_1" />
+    <field column="EASTING" key="other_3" />
+    <field column="NORTHING" key="other_4" />
+  </map>
+  <map name="schools" label="Schools">
+    <field column="NAME" key="name" />
+    <field column="ADDRESS" key="address" />
+    <field column="POSTCODE" key="postcode" />
+    <field column="TYPE" key="other_1" />
+    <field column="ACADEMY" key="other_2" />
+    <field column="MAP_EAST" key="other_3" />
+    <field column="MAP_NORTH" key="other_4" />
+  </map>
+  <map name="work-ready-locations" label="Work Ready Locations">
+    <field column="Organisation" key="name" />
+    <field column="Address 1" key="address" />
+    <field column="Postcode" key="postcode" />
+    <field column="Telephone" key="telephone" />
+    <field column="Contact Name" key="other_1" />
+    <field column="Email" key="other_2" />
+    <field column="Website" key="other_3" />
+    <field column="Description of provision" key="other_4" />
+    <field column="Target group" key="other_5" />
+  </map>
+</dataset>
