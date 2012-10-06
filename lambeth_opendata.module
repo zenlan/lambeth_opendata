@@ -6,7 +6,7 @@
  *
  * @ingroup
  */
-module_load_include('inc', 'lambeth_opendata');
+module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.conf');
 
 /**
  * Implements hook_menu().
@@ -16,25 +16,35 @@ function lambeth_opendata_menu() {
     'title' => 'Lambeth Open Data',
     'type' => MENU_NORMAL_ITEM,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('lambeth_opendata_admin_settings'),
-    'description' => 'Configure Lambeth Open Data',
+    'page arguments' => array('lambeth_opendata_configuration'),
+    'description' => 'View Lambeth Open Data configuration details.',
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
   );
-  $items['admin/config/search/lambeth_opendata/settings'] = array(
-    'title' => 'Settings',
+  $items['admin/config/search/lambeth_opendata/configuration'] = array(
+    'title' => 'Configuration',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 0,
   );
-  $items['admin/config/search/lambeth_opendata/properties'] = array(
+  $items['admin/config/search/lambeth_opendata/entities'] = array(
     'title' => 'Entities',
     'type' => MENU_LOCAL_TASK,
-    'description' => 'View Lambeth Open Data entity definitions, properties as well as links to pages',
+    'description' => 'View Lambeth Open Data entity definitions.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('lambeth_opendata_entities'),
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 200,
+  );
+  $items['admin/config/search/lambeth_opendata/cache'] = array(
+    'title' => 'Cache',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Manage Lambeth Open Data cached data.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_cache'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 230,
   );
   $items['admin/config/search/lambeth_opendata/scraper'] = array(
     'title' => 'Scraper',
@@ -45,6 +55,16 @@ function lambeth_opendata_menu() {
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 240,
+  );
+  $items['admin/config/search/lambeth_opendata/repo'] = array(
+    'title' => 'Repository',
+    'type' => MENU_LOCAL_TASK,
+    'description' => 'Check for new files from source against repository.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('lambeth_opendata_repo'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'lambeth_opendata.admin.inc',
+    'weight' => 300,
   );
   $items['admin/config/search/lambeth_opendata/junk'] = array(
     'title' => 'Junk',
@@ -142,82 +162,162 @@ function lambeth_opendata_description() {
   );
 }
 
+
+function lambeth_opendata_static_conf($filename = NULL, $filepath = NULL) {
+  static $_lambeth_opendata_conf;
+  if (is_null($_lambeth_opendata_conf)) {
+    try {
+      $_lambeth_opendata_conf = new LambethOpendataConf($filename, $filepath);
+      $_lambeth_opendata_conf->load_conf();
+    } catch (Exception $e) {
+      watchdog('lambeth_opendata', $e->getMessage(), '', WATCHDOG_CRITICAL);
+    }
+  }
+  return $_lambeth_opendata_conf;
+}
+
 /**
  * Implements hook_entity_info().
  */
 function lambeth_opendata_entity_info() {
-  $return = array(
-    'lambeth_opendata_foi' => array(
-      'label' => t('Lambeth Open Data FoI Entity'),
-      'entity class' => 'LBLODFoIClass',
-      'controller class' => 'LBLODFoIController',
-      'creation callback' => 'lambeth_opendata_foi_creation_callback',
-      'access callback' => 'lambeth_opendata_access',
-//    'view callback' => 'lambeth_opendata_view_callback',
-      'fieldable' => FALSE,
+  $info = array();
+  $conf = lambeth_opendata_static_conf();
+  $datasets = $conf->get_conf_datasets();
+  foreach ($datasets as $set => $vals) {
+    $info['lambeth_opendata_' . $set] = array(
+      'label' => t($vals['label']),
+      'plural label' => t($vals['label']),
+      'controller class' => 'LambethDatasetEntityController',
+      'metadata controller class' => FALSE,
+      'entity class' => 'LambethDatasetEntity',
+      'creation callback' => 'lambeth_opendata_dataset_creation_callback',
+      'uri callback' => 'lambeth_opendata_dataset_entity_url_callback',
+      'module' => 'lambeth_opendata',
+      'load hook' => 'lambeth_opendata_dataset_load',
       'exportable' => FALSE,
-      'entity keys' => array(
-        'id' => 'Ref',
-      ),
+      'fieldable' => FALSE,
+      'entity cache' => FALSE,
       'static cache' => TRUE,
       'field cache' => FALSE,
-      'label callback' => 'lambeth_opendata_foi_label',
-      'uri callback' => 'lambeth_opendata_foi_uri',
-    ),
-    'lambeth_opendata_locations' => array(
-      'label' => t('Lambeth Open Data Locations Entity'),
-      'entity class' => 'LBLODLocationsClass',
-      'controller class' => 'LBLODLocationsController',
-      'creation callback' => 'lambeth_opendata_locations_creation_callback',
-      'access callback' => 'lambeth_opendata_access',
-//    'view callback' => 'lambeth_opendata_view_callback',
-      'fieldable' => FALSE,
-      'exportable' => FALSE,
       'entity keys' => array(
-        'id' => 'index',
+        'id' => $vals['tables']['maps']['default']['uniqueKey'],
       ),
-      'static cache' => TRUE,
-      'field cache' => FALSE,
-      'label callback' => 'lambeth_opendata_locations_label',
-      'uri callback' => 'lambeth_opendata_locations_uri',
-    ),
-    'lambeth_opendata_planning' => array(
-      'label' => t('Lambeth Open Data Planning Entity'),
-      'entity class' => 'LBLODPlanningClass',
-      'controller class' => 'LBLODPlanningController',
-      'creation callback' => 'lambeth_opendata_planning_creation_callback',
-      'access callback' => 'lambeth_opendata_access',
-//    'view callback' => 'lambeth_opendata_view_callback',
-      'fieldable' => FALSE,
-      'exportable' => FALSE,
-      'entity keys' => array(
-        'id' => 'REFVAL',
+      'access callback' => 'access content',
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full'),
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => TRUE,
+        ),
+        'debug' => array(
+          'label' => t('Debug'),
+          'custom settings' => FALSE,
+        ),
       ),
-      'static cache' => TRUE,
-      'field cache' => FALSE,
-      'label callback' => 'lambeth_opendata_planning_label',
-      'uri callback' => 'lambeth_opendata_planning_uri',
-    ),
-    'lambeth_opendata_spending' => array(
-      'label' => t('Lambeth Open Data Spending Entity'),
-      'entity class' => 'LBLODSpendingClass',
-      'controller class' => 'LBLODSpendingController',
-      'creation callback' => 'lambeth_opendata_spending_creation_callback',
-      'access callback' => 'lambeth_opendata_access',
-//    'view callback' => 'lambeth_opendata_view_callback',
-      'fieldable' => FALSE,
-      'exportable' => FALSE,
-      'entity keys' => array(
-        'id' => 'Index',
-      ),
-      'static cache' => TRUE,
-      'field cache' => FALSE,
-      'label callback' => 'lambeth_opendata_spending_label',
-      'uri callback' => 'lambeth_opendata_spending_uri',
-    ),
-  );
-  return $return;
+    );
+  }
+  return $info;
 }
+
+/**
+ * Implements hook_entity_property_info().
+ */
+function lambeth_opendata_entity_property_info() {
+  $info = array();
+  $conf = lambeth_opendata_static_conf();
+  $datasets = $conf->get_conf_datasets();
+  foreach ($datasets as $set => $vals) {
+    $properties = &$info['lambeth_opendata_' . $set]['properties'];
+    foreach ($vals['tables']['properties'] as $k => $v) {
+      $properties[$v['name']] = array(
+        'type' => $v['type'],
+        'label' => $v['label'],
+        'description' => $v['description'],
+      );
+    }
+  }
+  return $info;
+}
+
+/**
+ * Implements hook_entity_info().
+ */
+//function lambeth_opendata_entity_info() {
+//  $return = array(
+//    'lambeth_opendata_foi' => array(
+//      'label' => t('Lambeth Open Data FoI Entity'),
+//      'entity class' => 'LBLODFoIClass',
+//      'controller class' => 'LBLODFoIController',
+//      'creation callback' => 'lambeth_opendata_foi_creation_callback',
+//      'access callback' => 'lambeth_opendata_access',
+////    'view callback' => 'lambeth_opendata_view_callback',
+//      'fieldable' => FALSE,
+//      'exportable' => FALSE,
+//      'entity keys' => array(
+//        'id' => 'Ref',
+//      ),
+//      'static cache' => TRUE,
+//      'field cache' => FALSE,
+//      'label callback' => 'lambeth_opendata_foi_label',
+//      'uri callback' => 'lambeth_opendata_foi_uri',
+//    ),
+//    'lambeth_opendata_locations' => array(
+//      'label' => t('Lambeth Open Data Locations Entity'),
+//      'entity class' => 'LBLODLocationsClass',
+//      'controller class' => 'LBLODLocationsController',
+//      'creation callback' => 'lambeth_opendata_locations_creation_callback',
+//      'access callback' => 'lambeth_opendata_access',
+////    'view callback' => 'lambeth_opendata_view_callback',
+//      'fieldable' => FALSE,
+//      'exportable' => FALSE,
+//      'entity keys' => array(
+//        'id' => 'index',
+//      ),
+//      'static cache' => TRUE,
+//      'field cache' => FALSE,
+//      'label callback' => 'lambeth_opendata_locations_label',
+//      'uri callback' => 'lambeth_opendata_locations_uri',
+//    ),
+//    'lambeth_opendata_planning' => array(
+//      'label' => t('Lambeth Open Data Planning Entity'),
+//      'entity class' => 'LBLODPlanningClass',
+//      'controller class' => 'LBLODPlanningController',
+//      'creation callback' => 'lambeth_opendata_planning_creation_callback',
+//      'access callback' => 'lambeth_opendata_access',
+////    'view callback' => 'lambeth_opendata_view_callback',
+//      'fieldable' => FALSE,
+//      'exportable' => FALSE,
+//      'entity keys' => array(
+//        'id' => 'REFVAL',
+//      ),
+//      'static cache' => TRUE,
+//      'field cache' => FALSE,
+//      'label callback' => 'lambeth_opendata_planning_label',
+//      'uri callback' => 'lambeth_opendata_planning_uri',
+//    ),
+//    'lambeth_opendata_spending' => array(
+//      'label' => t('Lambeth Open Data Spending Entity'),
+//      'entity class' => 'LBLODSpendingClass',
+//      'controller class' => 'LBLODSpendingController',
+//      'creation callback' => 'lambeth_opendata_spending_creation_callback',
+//      'access callback' => 'lambeth_opendata_access',
+////    'view callback' => 'lambeth_opendata_view_callback',
+//      'fieldable' => FALSE,
+//      'exportable' => FALSE,
+//      'entity keys' => array(
+//        'id' => 'Index',
+//      ),
+//      'static cache' => TRUE,
+//      'field cache' => FALSE,
+//      'label callback' => 'lambeth_opendata_spending_label',
+//      'uri callback' => 'lambeth_opendata_spending_uri',
+//    ),
+//  );
+//  return $return;
+//}
 
 function lambeth_opendata_get_indexkey($entity_type) {
 

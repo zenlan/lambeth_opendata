@@ -6,13 +6,23 @@
  *
  * @ingroup
  */
+module_load_include('inc', 'lambeth_opendata');
 module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.import');
 
-function lambeth_opendata_batch_init() {
+function lambeth_opendata_batch_import() {
+  lambeth_opendata_batch_init('import');
+}
+
+function lambeth_opendata_batch_download() {
+  lambeth_opendata_batch_init('download');
+}
+
+function lambeth_opendata_batch_init($action) {
+  $args = array($action);
   $batch = array(
     'title' => t('Batch Scrape Lambeth Open Data'),
     'operations' => array(
-      array('lambeth_opendata_batch_function', array()),
+      array('lambeth_opendata_batch_function', $args),
     ),
     'init_message' => t('Lambeth Open Data scraper is starting...'),
     'progress_message' => t('Processed @current out of @total.'),
@@ -23,8 +33,9 @@ function lambeth_opendata_batch_init() {
   batch_set($batch);
 }
 
-function lambeth_opendata_batch_function(&$context) {
+function lambeth_opendata_batch_function($action, &$context) {
   global $_lambeth_opendata_types;
+  $function = 'lambeth_opendata_' . $action;
   if (empty($context['sandbox'])) {
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = count($_lambeth_opendata_types);
@@ -34,7 +45,9 @@ function lambeth_opendata_batch_function(&$context) {
     $context['finished'] = $context['sandbox']['progress']++ / $context['sandbox']['max'];
     foreach ($item as $type => $values) {
       if ($data = lambeth_opendata_scrape($values['url'])) {
-        lambeth_opendata_import($type, $data);
+        call_user_func_array($function, array($type, $data));
+        //lambeth_opendata_import($type, $data);
+        //lambeth_opendata_download($type, $data);
         $context['results'][$type] = count($data);
       }
     }
@@ -59,7 +72,7 @@ function lambeth_opendata_batch_finished($success, $results, $operations) {
   }
 }
 
-function lambeth_opendata_scrape($url) {
+function lambeth_opendata_scrape($url, $download=FALSE) {
 
   if (!$tmp = lambeth_opendata_get_page_contents($url)) {
     watchdog('lambeth_opendata', 'Failed to retrieve content from !url', array('!url' => $url));
@@ -77,12 +90,14 @@ function lambeth_opendata_scrape($url) {
         if ($i = preg_match($uidformat, $tmp['dirname'], $umatches)) {
           $tmp['uid'] = $umatches[0];
         }
-        $result[] = $tmp;
+        $result[$tmp['basename']] = $tmp;
+        ksort($result[$tmp['basename']]);
       }
       else {
         watchdog('lambeth_opendata', 'EXCEPTION: FILE IS NOT CSV !file', array('!file' => $tmp['basename']));
       }
     }
+    ksort($result);
     return $result;
   }
   watchdog('lambeth_opendata', 'No CSV files found at !url', array('!url' => $url));

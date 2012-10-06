@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  */
@@ -16,13 +17,24 @@
  *  log details
  */
 function lambeth_opendata_import($type, $data) {
+  global $_lambeth_opendata_public_dir;
+  $dir = $_lambeth_opendata_public_dir . $type;
   $result = array();
   foreach ($data as $k => $v) {
     $v['nid'] = _lambeth_opendata_get_node_by_uid($v['uid']);
-    if ($v['file_obj'] = _lambeth_opendata_upload_file_managed($type, $v)) {
+    if ($v['file_obj'] = _lambeth_opendata_upload_file_unmanaged($v, $dir)) {
       $result[] = _lambeth_opendata_node_new_datadoc($type, $v);
     }
-    //return $result;
+  }
+  return $result;
+}
+
+function lambeth_opendata_download($type, $data) {
+  global $_lambeth_opendata_private_dir;
+  $dir = $_lambeth_opendata_private_dir . $type;
+  $result = array();
+  foreach ($data as $k => $v) {
+    $result[] = _lambeth_opendata_upload_file_unmanaged($v, $dir);
   }
   return $result;
 }
@@ -80,9 +92,7 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
   return $node->nid;
 }
 
-function _lambeth_opendata_upload_file_managed($type, $data) {
-  global $_lambeth_opendata_public_dir;
-  $dir = $_lambeth_opendata_public_dir . $type;
+function _lambeth_opendata_upload_file_unmanaged($data, $dir) {
   if (!file_valid_uri($dir)) {
     watchdog('lambeth_opendata', t('Invalid uri !dir', array('!dir', $dir)));
     return FALSE;
