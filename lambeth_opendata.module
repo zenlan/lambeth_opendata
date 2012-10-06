@@ -481,14 +481,9 @@ function lambeth_opendata_entity_delete($entity, $type) {
 }
 
 function lambeth_opendata_trackable_entity($entity, $type) {
-  global $_lambeth_opendata_types;
-  if ($type == 'node') {
-    if ($entity->type == 'lambeth_opendata_document') {
-      $doctype = lambeth_opendata_get_node_type_by_tid($entity->field_lambeth_doc_type[LANGUAGE_NONE][0]['tid']);
-      if (array_key_exists($doctype, $_lambeth_opendata_types)) {
-        return 'lambeth_opendata_' . $doctype;
-      }
-    }
+  if ($type == 'node' && $entity->type == 'lambeth_opendata_document') {
+    $doctype = $entity->field_lambeth_dataset[$entity->language][0]['value'];
+    return 'lambeth_opendata_' . $doctype;
   }
   return FALSE;
 }
@@ -564,20 +559,20 @@ function lambeth_opendata_get_type_from_index_name($machine_name) {
   return str_replace('_index', '', str_replace('lbl_', '', $machine_name));
 }
 
-function lambeth_opendata_get_node_type_by_tid($tid) {
-  global $_lambeth_opendata_types;
-  foreach ($_lambeth_opendata_types as $type => $info) {
-    if ($info['tid'] == $tid) {
-      return $type;
-    }
-  }
-  return FALSE;
-}
-
-function lambeth_opendata_get_node_tid_by_type($type) {
-  global $_lambeth_opendata_types;
-  return isset($_lambeth_opendata_types[$type]) ? $_lambeth_opendata_types[$type]['tid'] : FALSE;
-}
+//function lambeth_opendata_get_node_type_by_tid($tid) {
+//  global $_lambeth_opendata_types;
+//  foreach ($_lambeth_opendata_types as $type => $info) {
+//    if ($info['tid'] == $tid) {
+//      return $type;
+//    }
+//  }
+//  return FALSE;
+//}
+//
+//function lambeth_opendata_get_node_tid_by_type($type) {
+//  global $_lambeth_opendata_types;
+//  return isset($_lambeth_opendata_types[$type]) ? $_lambeth_opendata_types[$type]['tid'] : FALSE;
+//}
 
 /**
  * This hook is called right after the execute process. The query has
@@ -858,12 +853,11 @@ function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
   $query->addField('n', 'nid');
   $query->addField('n', 'title', 'node_title');
   $query->addField('n', 'changed', 'node_changed');
-  $query->addField('t', 'name', 'term_name');
+  $query->addField('f', 'field_lambeth_doc_name_value	', 'term_name');
   $query->addField('s', 'changed', 'search_changed');
   $query->leftJoin('search_api_item', 's', 's.item_id=n.nid');
   $query->leftJoin('search_api_index', 'i', 'i.id=s.index_id');
-  $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
-  $query->leftJoin('taxonomy_term_data', 't', 't.tid=f.field_lambeth_doc_type_tid');
+  $query->leftJoin('field_data_field_lambeth_dataset', 'f', 'f.entity_id=n.nid');
   $query->condition('n.type', 'lambeth_opendata_document', '=');
   $query->condition('i.machine_name', 'lbl_document_index', '=');
   $query->orderBy('n.changed', 'DESC');
@@ -872,7 +866,7 @@ function lambeth_opendata_documents_query($limit = 0, $type = 0, $status = -2) {
     $query->range(0, $limit);
   }
   if ($type) {
-    $query->condition('f.field_lambeth_doc_type_tid', $type, '=');
+    $query->condition('f.field_lambeth_dataset_value', $type, '=');
   }
   if ($status > -2) {
     $query->condition('s.changed', $status, '=');
@@ -956,30 +950,30 @@ function template_preprocess_lambeth_opendata_documents_exposed_form(&$variables
   $variables['filters_form']['hidden'] = implode($hidden);
   $variables['filters'] = implode($variables['filters_form']);
 }
-
-/**
- * implements hook_taxonomy_term_update
- */
-function lambeth_opendata_taxonomy_term_update($term) {
-  lambeth_opendata_taxonomy_term_changed($term);
-}
-
-/**
- * implements hook_taxonomy_term_insert
- */
-function lambeth_opendata_taxonomy_term_insert($term) {
-  lambeth_opendata_taxonomy_term_changed($term);
-}
-
-/**
- * implements hook_taxonomy_term_delete
- */
-function lambeth_opendata_taxonomy_term_delete($term) {
-  lambeth_opendata_taxonomy_term_changed($term);
-}
-
-function lambeth_opendata_taxonomy_term_changed($term) {
-  if ($term->vocabulary_machine_name == 'lambeth_opendata_category') {
-    lambeth_opendata_cache_document_types();
-  }
-}
+//
+///**
+// * implements hook_taxonomy_term_update
+// */
+//function lambeth_opendata_taxonomy_term_update($term) {
+//  lambeth_opendata_taxonomy_term_changed($term);
+//}
+//
+///**
+// * implements hook_taxonomy_term_insert
+// */
+//function lambeth_opendata_taxonomy_term_insert($term) {
+//  lambeth_opendata_taxonomy_term_changed($term);
+//}
+//
+///**
+// * implements hook_taxonomy_term_delete
+// */
+//function lambeth_opendata_taxonomy_term_delete($term) {
+//  lambeth_opendata_taxonomy_term_changed($term);
+//}
+//
+//function lambeth_opendata_taxonomy_term_changed($term) {
+//  if ($term->vocabulary_machine_name == 'lambeth_opendata_category') {
+//    //lambeth_opendata_cache_document_types();
+//  }
+//}

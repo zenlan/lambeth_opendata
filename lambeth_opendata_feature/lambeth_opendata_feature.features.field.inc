@@ -79,53 +79,52 @@ function lambeth_opendata_feature_field_default_fields() {
           'summary_rows' => 5,
         ),
         'type' => 'text_textarea_with_summary',
-        'weight' => '31',
+        'weight' => '2',
       ),
     ),
   );
 
-  // Exported field: 'node-lambeth_opendata_document-field_lambeth_doc_file'.
-  $fields['node-lambeth_opendata_document-field_lambeth_doc_file'] = array(
+  // Exported field: 'node-lambeth_opendata_document-field_lambeth_dataset'.
+  $fields['node-lambeth_opendata_document-field_lambeth_dataset'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_lambeth_doc_file',
+      'field_name' => 'field_lambeth_dataset',
       'foreign keys' => array(
-        'fid' => array(
+        'format' => array(
           'columns' => array(
-            'fid' => 'fid',
+            'format' => 'format',
           ),
-          'table' => 'file_managed',
+          'table' => 'filter_format',
         ),
       ),
       'indexes' => array(
-        'fid' => array(
-          0 => 'fid',
+        'format' => array(
+          0 => 'format',
         ),
       ),
       'locked' => '0',
-      'module' => 'file',
+      'module' => 'text',
       'settings' => array(
-        'display_default' => 1,
-        'display_field' => 1,
-        'uri_scheme' => 'public',
+        'max_length' => '255',
       ),
       'translatable' => '0',
-      'type' => 'file',
+      'type' => 'text',
     ),
     'field_instance' => array(
       'bundle' => 'lambeth_opendata_document',
+      'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'inline',
-          'module' => 'file',
+          'label' => 'above',
+          'module' => 'text',
           'settings' => array(),
-          'type' => 'file_default',
-          'weight' => '3',
+          'type' => 'text_default',
+          'weight' => 7,
         ),
         'teaser' => array(
           'label' => 'above',
@@ -135,24 +134,21 @@ function lambeth_opendata_feature_field_default_fields() {
         ),
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_lambeth_doc_file',
-      'label' => 'Document File',
-      'required' => 1,
+      'field_name' => 'field_lambeth_dataset',
+      'label' => 'Dataset',
+      'required' => 0,
       'settings' => array(
-        'description_field' => 0,
-        'file_directory' => 'lambeth_opendata',
-        'file_extensions' => 'csv',
-        'max_filesize' => '',
+        'text_processing' => '0',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
         'active' => 1,
-        'module' => 'file',
+        'module' => 'text',
         'settings' => array(
-          'progress_indicator' => 'throbber',
+          'size' => '60',
         ),
-        'type' => 'file_generic',
-        'weight' => '34',
+        'type' => 'text_textfield',
+        'weight' => '3',
       ),
     ),
   );
@@ -221,7 +217,7 @@ function lambeth_opendata_feature_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '35',
+        'weight' => '6',
       ),
     ),
   );
@@ -290,78 +286,7 @@ function lambeth_opendata_feature_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '33',
-      ),
-    ),
-  );
-
-  // Exported field: 'node-lambeth_opendata_document-field_lambeth_doc_type'.
-  $fields['node-lambeth_opendata_document-field_lambeth_doc_type'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_lambeth_doc_type',
-      'foreign keys' => array(
-        'tid' => array(
-          'columns' => array(
-            'tid' => 'tid',
-          ),
-          'table' => 'taxonomy_term_data',
-        ),
-      ),
-      'indexes' => array(
-        'tid' => array(
-          0 => 'tid',
-        ),
-      ),
-      'locked' => '0',
-      'module' => 'taxonomy',
-      'settings' => array(
-        'allowed_values' => array(
-          0 => array(
-            'vocabulary' => 'lambeth_opendata_category',
-            'parent' => '0',
-          ),
-        ),
-      ),
-      'translatable' => '0',
-      'type' => 'taxonomy_term_reference',
-    ),
-    'field_instance' => array(
-      'bundle' => 'lambeth_opendata_document',
-      'default_value' => NULL,
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'inline',
-          'module' => 'taxonomy',
-          'settings' => array(),
-          'type' => 'taxonomy_term_reference_link',
-          'weight' => '1',
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => 0,
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_lambeth_doc_type',
-      'label' => 'Document Type',
-      'required' => 1,
-      'settings' => array(
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'options',
-        'settings' => array(),
-        'type' => 'options_select',
-        'weight' => '32',
+        'weight' => '5',
       ),
     ),
   );
@@ -430,7 +355,7 @@ function lambeth_opendata_feature_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '36',
+        'weight' => '7',
       ),
     ),
   );
@@ -499,19 +424,92 @@ function lambeth_opendata_feature_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '37',
+        'weight' => '8',
       ),
     ),
   );
 
-  // Exported field: 'taxonomy_term-lambeth_opendata_category-field_document_type_label'.
-  $fields['taxonomy_term-lambeth_opendata_category-field_document_type_label'] = array(
+  // Exported field: 'node-lambeth_opendata_document-field_lambeth_file'.
+  $fields['node-lambeth_opendata_document-field_lambeth_file'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_document_type_label',
+      'field_name' => 'field_lambeth_file',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid',
+          ),
+          'table' => 'file_managed',
+        ),
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'file',
+      'settings' => array(
+        'display_default' => 0,
+        'display_field' => 0,
+        'uri_scheme' => 'public',
+      ),
+      'translatable' => '0',
+      'type' => 'file',
+    ),
+    'field_instance' => array(
+      'bundle' => 'lambeth_opendata_document',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'file',
+          'settings' => array(),
+          'type' => 'file_default',
+          'weight' => 8,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_lambeth_file',
+      'label' => 'File',
+      'required' => 0,
+      'settings' => array(
+        'description_field' => 0,
+        'file_directory' => 'lambeth_opendata',
+        'file_extensions' => 'csv',
+        'max_filesize' => '',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'file',
+        'settings' => array(
+          'progress_indicator' => 'throbber',
+        ),
+        'type' => 'file_generic',
+        'weight' => '4',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-lambeth_opendata_document-field_lambeth_git_sha'.
+  $fields['node-lambeth_opendata_document-field_lambeth_git_sha'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_lambeth_git_sha',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
@@ -534,7 +532,7 @@ function lambeth_opendata_feature_field_default_fields() {
       'type' => 'text',
     ),
     'field_instance' => array(
-      'bundle' => 'lambeth_opendata_category',
+      'bundle' => 'lambeth_opendata_document',
       'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
@@ -544,13 +542,19 @@ function lambeth_opendata_feature_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
+          'weight' => 9,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
           'weight' => 0,
         ),
       ),
-      'entity_type' => 'taxonomy_term',
-      'field_name' => 'field_document_type_label',
-      'label' => 'Label',
-      'required' => 1,
+      'entity_type' => 'node',
+      'field_name' => 'field_lambeth_git_sha',
+      'label' => 'Git SHA',
+      'required' => 0,
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -562,19 +566,19 @@ function lambeth_opendata_feature_field_default_fields() {
           'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '31',
+        'weight' => '9',
       ),
     ),
   );
 
-  // Exported field: 'taxonomy_term-lambeth_opendata_category-field_document_type_origin'.
-  $fields['taxonomy_term-lambeth_opendata_category-field_document_type_origin'] = array(
+  // Exported field: 'node-lambeth_opendata_document-field_lambeth_git_url'.
+  $fields['node-lambeth_opendata_document-field_lambeth_git_url'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_document_type_origin',
+      'field_name' => 'field_lambeth_git_url',
       'foreign keys' => array(
         'format' => array(
           'columns' => array(
@@ -597,12 +601,8 @@ function lambeth_opendata_feature_field_default_fields() {
       'type' => 'text',
     ),
     'field_instance' => array(
-      'bundle' => 'lambeth_opendata_category',
-      'default_value' => array(
-        0 => array(
-          'value' => 'http://www.lambeth.gov.uk/Services/CouncilDemocracy/DataProtectionFOI/pagename.htm',
-        ),
-      ),
+      'bundle' => 'lambeth_opendata_document',
+      'default_value' => NULL,
       'deleted' => '0',
       'description' => '',
       'display' => array(
@@ -611,13 +611,19 @@ function lambeth_opendata_feature_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 1,
+          'weight' => 10,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
         ),
       ),
-      'entity_type' => 'taxonomy_term',
-      'field_name' => 'field_document_type_origin',
-      'label' => 'Origin',
-      'required' => 1,
+      'entity_type' => 'node',
+      'field_name' => 'field_lambeth_git_url',
+      'label' => 'Git Url',
+      'required' => 0,
       'settings' => array(
         'text_processing' => '0',
         'user_register_form' => FALSE,
@@ -626,10 +632,10 @@ function lambeth_opendata_feature_field_default_fields() {
         'active' => 1,
         'module' => 'text',
         'settings' => array(
-          'size' => '128',
+          'size' => '60',
         ),
         'type' => 'text_textfield',
-        'weight' => '32',
+        'weight' => '10',
       ),
     ),
   );
@@ -637,14 +643,14 @@ function lambeth_opendata_feature_field_default_fields() {
   // Translatables
   // Included for use with string extractors like potx.
   t('Body');
+  t('Dataset');
   t('Doc Filename');
   t('Doc UID');
   t('Doc Url');
-  t('Document File');
   t('Document Name');
-  t('Document Type');
-  t('Label');
-  t('Origin');
+  t('File');
+  t('Git SHA');
+  t('Git Url');
 
   return $fields;
 }

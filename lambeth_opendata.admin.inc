@@ -226,7 +226,7 @@ function lambeth_opendata_source_build_cache() {
 function lambeth_opendata_conf() {
   $result = array();
   try {
-    $conf = lambeth_opendata_static_conf(); //new LambethOpendataConf();
+    $conf = lambeth_opendata_static_conf();
     $result = $conf->get_conf_array();
   } catch (Exception $e) {
     $result = array('error' => $e->getMessage());
@@ -235,7 +235,6 @@ function lambeth_opendata_conf() {
 }
 
 function lambeth_opendata_github_build_cache() {
-  //module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.github');
   $options = array(
     'repo_owner' => 'zenlan',
     'repo_name' => 'lambeth_opendatastore',
@@ -281,26 +280,6 @@ function lambeth_opendata_github_build_cache() {
   return FALSE;
 }
 
-//function lambeth_opendata_admin_settings(array $form, array &$form_state) {
-//  return lambeth_opendata_configuration($form, $form_state);
-//  global $_lambeth_opendata_types;
-//  $markup = '<p>';
-//  $markup .= 'These categories are defined in vocabulary ';
-//  $markup .= l('Lambeth Open Data Category', 'admin/structure/taxonomy/lambeth_opendata_category', array('attributes' => array(
-//      'target' => '_blank',
-//      )));
-//  $markup .= '</p>';
-//  foreach ($_lambeth_opendata_types as $field => $values) {
-//    $markup .= '<p>Key: ' . t($field);
-//    $markup .= '<br />ID: ' . $values['tid'];
-//    $markup .= '<br />Label: ' . t($values['label']);
-//    $markup .= '<br />Origin: ' . $values['url'] . '</p>';
-//  }
-//  $form['description'] = array(
-//    '#markup' => $markup,
-//  );
-//  return $form;
-//}
 //function lambeth_opendata_github_download() {
 //  $dir = DRUPAL_ROOT . '/' . variable_get('file_public_path') . '/lambeth_opendata/';
 //  if (!file_exists($dir)) {

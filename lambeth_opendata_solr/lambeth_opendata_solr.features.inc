@@ -35,7 +35,7 @@ function lambeth_opendata_solr_default_search_api_index() {
         "field_tags" : { "type" : "list\\u003Cinteger\\u003E", "entity_type" : "taxonomy_term" },
         "field_lambeth_doc_filename" : { "type" : "text" },
         "field_lambeth_doc_name" : { "type" : "text" },
-        "field_lambeth_doc_type" : { "type" : "integer", "entity_type" : "taxonomy_term" },
+        "field_lambeth_dataset" : { "type" : "text" },
         "search_api_language" : { "type" : "string" },
         "body:value" : { "type" : "text" },
         "body:summary" : { "type" : "text" }
@@ -281,9 +281,9 @@ function lambeth_opendata_solr_default_search_api_server() {
       "default_field" : "Ref",
       "http_user" : "",
       "http_pass" : "",
-      "excerpt" : 1,
-      "retrieve_data" : 1,
-      "highlight_data" : 1
+      "excerpt" : 0,
+      "retrieve_data" : 0,
+      "highlight_data" : 0
     },
     "enabled" : "1"
   }');
@@ -333,11 +333,11 @@ function lambeth_opendata_solr_default_search_api_server() {
       "port" : "8080",
       "path" : "\\/solr\\/lambeth_spending",
       "default_field" : "Index",
-      "http_user" : "admin",
-      "http_pass" : "admin",
-      "excerpt" : 1,
-      "retrieve_data" : 1,
-      "highlight_data" : 1
+      "http_user" : "",
+      "http_pass" : "",
+      "excerpt" : 0,
+      "retrieve_data" : 0,
+      "highlight_data" : 0
     },
     "enabled" : "1"
   }');

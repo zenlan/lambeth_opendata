@@ -63,11 +63,12 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
     $node->field_lambeth_doc_name[$node->language][0]['value'] = $data['filename'];
     $node->field_lambeth_doc_url[$node->language][0]['value'] = $data['dirname'];
     $node->field_lambeth_doc_filename[$node->language][0]['value'] = $data['basename'];
-    if (!$tid = lambeth_opendata_get_node_tid_by_type($type)) {
-      watchdog('_lambeth_opendata_node_new_datadoc', t('Failed to get tid for !type', array('!type' => $type)));
-      return FALSE;
-    }
-    $node->field_lambeth_doc_type[$node->language][0] = $tid;
+//    if (!$tid = lambeth_opendata_get_node_tid_by_type($type)) {
+//      watchdog('_lambeth_opendata_node_new_datadoc', t('Failed to get tid for !type', array('!type' => $type)));
+//      return FALSE;
+//    }
+    //$node->field_lambeth_doc_type[$node->language][0] = $tid;
+    $node->field_lambeth_dataset[$node->language][0] = $type;
     $field_doc = array(
       'fid' => $data['file_obj']->fid,
       'filename' => $data['file_obj']->filename,

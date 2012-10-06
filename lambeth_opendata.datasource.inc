@@ -130,15 +130,11 @@ class LambethOpenDataEntityDataSourceController extends SearchApiEntityDataSourc
     $this->stopTracking($indexes);
     foreach ($indexes as $k => $index) {
       $type = str_replace('_index', '', str_replace('lbl_', '', $index->machine_name));
-      if (!$tid = lambeth_opendata_get_node_tid_by_type($type)) {
-        watchdog('LambethOpenDataEntityDataSourceController', t('Failed to get tid for !type', array('!type' => $type)));
-        continue;
-      }
       $query = db_select('node', 'n');
       $query->addField('n', 'nid', 'item_id');
-      $query->leftJoin('field_data_field_lambeth_doc_type', 'f', 'f.entity_id=n.nid');
+      $query->leftJoin('field_data_field_lambeth_dataset', 'f', 'f.entity_id=n.nid');
       $query->condition('n.type', 'lambeth_opendata_document', '=');
-      $query->condition('f.field_lambeth_doc_type_tid', $tid, '=');
+      $query->condition('f.field_lambeth_dataset_value', $type, '=');
       $query->addExpression(':index_id', 'index_id', array(':index_id' => $index->id));
       $query->addExpression('1', 'changed');
       db_insert($this->table)
