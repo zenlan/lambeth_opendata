@@ -150,6 +150,18 @@ class LambethOpenDataGitHub {
     return FALSE;
   }
 
+  function get_repo_content($path) {
+    $url = $this->get_repo_url() .'/contents/' . $path;
+    $content = $this->curl_request($url);
+    try {
+      file_put_contents('lambeth_opendata_content.txt', print_r(json_decode($content['data']), 1));
+      return json_decode($content['data']);
+    } catch (Exception $e) {
+      $this->set_error($e->getMessage(), $e->getCode());
+    }
+    return FALSE;
+  }
+
   function parse_repo_tree($tree) {
     foreach ($tree->tree as $i => $branch) {
       if ($branch->type == 'tree') {

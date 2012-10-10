@@ -3,6 +3,30 @@
 /**
  * @file
  */
+function lambeth_opendata_import_from_github($type, $data, $options) {
+  global $_lambeth_opendata_public_dir;
+  $dir = $_lambeth_opendata_public_dir . $type;
+  $result = array();
+  $git = new LambethOpenDataGitHub($options);
+  foreach ($data as $path) {
+    $content = $git->get_repo_content($path);
+    $node['nid'] = _lambeth_opendata_get_node_by_sha($content->sha);
+    $pathinfo = pathinfo($content->path);
+    $node['sha'] = $content->sha;
+    $node['path'] = $content->path;
+    $node['title'] = $pathinfo['basename'];
+    switch ($content->encoding) {
+      case 'base64':
+        $pathinfo['content'] = base64_decode($content->content);
+        break;
+      default:
+    }
+    if ($node['file_obj'] = _lambeth_opendata_upload_file_unmanaged($pathinfo, $dir)) {
+      $result[] = _lambeth_opendata_node_new_datadoc($type, $node);
+    }
+  }
+  return $result;
+}
 
 /**
  * read cache
@@ -59,16 +83,9 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
       $node->body = '';
     }
     $node->title = $data['title'];
-    $node->field_lambeth_doc_uid[$node->language][0]['value'] = $data['uid'];
-    $node->field_lambeth_doc_name[$node->language][0]['value'] = $data['filename'];
-    $node->field_lambeth_doc_url[$node->language][0]['value'] = $data['dirname'];
-    $node->field_lambeth_doc_filename[$node->language][0]['value'] = $data['basename'];
-//    if (!$tid = lambeth_opendata_get_node_tid_by_type($type)) {
-//      watchdog('_lambeth_opendata_node_new_datadoc', t('Failed to get tid for !type', array('!type' => $type)));
-//      return FALSE;
-//    }
-    //$node->field_lambeth_doc_type[$node->language][0] = $tid;
-    $node->field_lambeth_dataset[$node->language][0] = $type;
+    $node->field_lambeth_dataset[$node->language][0]['value'] = $type;
+    $node->field_lambeth_git_sha[$node->language][0]['value'] = $data['sha'];
+    $node->field_lambeth_git_url[$node->language][0]['value'] = $data['path'];
     $field_doc = array(
       'fid' => $data['file_obj']->fid,
       'filename' => $data['file_obj']->filename,
@@ -78,8 +95,7 @@ function _lambeth_opendata_node_new_datadoc($type, $data) {
       'status' => 1,
       'display' => 1,
     );
-    $node->field_lambeth_doc_file[$node->language][0] = $field_doc;
-
+    $node->field_lambeth_file[$node->language][0] = $field_doc;
     node_object_prepare($node);
     node_save($node);
     if (!$node->nid) {
@@ -102,13 +118,15 @@ function _lambeth_opendata_upload_file_unmanaged($data, $dir) {
     watchdog('lambeth_opendata', t('Error preparing directory !dir', array('!dir', $dir)));
     return FALSE;
   }
-  $url = $data['dirname'] . '/' . $data['basename'];
-  if (!$content = file_get_contents($url)) {
-    watchdog('lambeth_opendata', t('Error retrieving contents from !url', array('!url', $url)));
-    return FALSE;
+  if (!isset($data['content'])) {
+    $url = $data['dirname'] . '/' . $data['basename'];
+    if (!$data['content'] = file_get_contents($url)) {
+      watchdog('lambeth_opendata', t('Error retrieving contents from !url', array('!url', $url)));
+      return FALSE;
+    }
   }
   $file = $dir . '/' . $data['basename'];
-  if (!$file_obj = file_save_data($content, $file, FILE_EXISTS_REPLACE)) {
+  if (!$file_obj = file_save_data($data['content'], $file, FILE_EXISTS_REPLACE)) {
     watchdog('lambeth_opendata', t('Error saving !file to !dir', array('!file' => $file)));
     return FALSE;
   }
@@ -119,6 +137,15 @@ function _lambeth_opendata_get_node_by_uid($duid) {
   $query = db_select('field_revision_field_lambeth_doc_uid', 'f');
   $query->addField('f', 'entity_id');
   $query->condition('f.field_lambeth_doc_uid_value', $duid, '=');
+  $res = $query->execute();
+  $nid = $res->fetchField();
+  return $nid;
+}
+
+function _lambeth_opendata_get_node_by_sha($sha) {
+  $query = db_select('field_revision_field_lambeth_git_sha', 'f');
+  $query->addField('f', 'entity_id');
+  $query->condition('f.field_lambeth_git_sha_value', $sha, '=');
   $res = $query->execute();
   $nid = $res->fetchField();
   return $nid;

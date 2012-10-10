@@ -6,28 +6,49 @@
  *
  * @ingroup
  */
-function lambeth_opendata_junk(array $form, array &$form_state) {
-  $desc = '';
-  $form['description'] = array(
+function lambeth_opendata_junk() {
+  $desc = 'test';
+  $output['description'] = array(
     '#markup' => $desc,
+  );
+  return $output;
+}
+
+function lambeth_opendata_dataset_upload_form(array $form, array &$form_state, $name, $data) {
+  $header['filename'] = array('data' => 'File', 'field' => 'filename');
+  $form['#tree'] = TRUE;
+  $form['dataset'][$name] = array(
+    '#title' => $name,
+    '#type' => 'fieldset',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['dataset'][$name]['files'] = array(
+    '#type' => 'tableselect',
+    '#header' => $header,
+    '#options' => $data,
+    '#multiple' => TRUE,
+    '#default_value' => array(),
+    // '#js_select' => FALSE,
+    '#empty' => t('Empty'),
+  );
+//  $form['dataset'][$name]['type'] = array(
+//    '#type' => 'hidden',
+//    '#value' => $name,
+//  );
+  $form['dataset'][$name]['import'] = array(
+    '#name' => 'import',
+    '#type' => 'submit',
+    '#value' => t('Upload'),
+    '#submit' => array('lambeth_opendata_repo_submit'),
   );
   return $form;
 }
 
-function lambeth_opendata_repo(array $form, array &$form_state) {
+function lambeth_opendata_repo() {
 
-  $desc = '<p>data cleaning routines</p>';
-  $desc .= '<ul>';
-  $desc .= '<li>select all/dataset/file</li>';
-  $desc .= '<li>apply regex/function</li>';
-  $desc .= '</ul>';
-  $desc .= '<p>dataset configuration routines</p>';
-  $desc .= '<ul>';
-  $desc .= '<li>select all/dataset</li>';
-  $desc .= '<li>create/map vocabulary</li>';
-  $desc .= '<li>create/update entity/properties</li>';
-  $desc .= '</ul>';
-  $desc .= '<p>data import routines</p>';
+  $desc = '';
+  $desc .= '<p>data import</p>';
   $desc .= '<ul>';
   $desc .= '<li>select all/dataset/file</li>';
   $desc .= '<li>import</li>';
@@ -35,63 +56,34 @@ function lambeth_opendata_repo(array $form, array &$form_state) {
   $form['description'] = array(
     '#markup' => $desc,
   );
+  $output = array();
   $conf = lambeth_opendata_conf();
   if (!$gfiles = lambeth_opendata_github_repo_cache_get($conf['datastore']['owner'], $conf['datastore']['name'])) {
     drupal_set_message('Github cache is empty!', '', WATCHDOG_ALERT);
   }
   else {
     drupal_set_message('Github cache date: ' . date('d M Y h:m', $gfiles->created), '', WATCHDOG_ALERT);
-  }
-  if ($gfiles) {
     foreach ($conf['datastore']['datasets'] as $name => $info) {
-      $form['dataset'][$name] = array(
-        '#title' => $name,
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-      );
+      $data = array();
       foreach ($gfiles->data['sets'][$name] as $filename => $info) {
-        $data[] = array('filename' => $filename);
+        $data[$name . '/' .$filename] = array('filename' => $filename);
       }
-      $tmp = array_keys($gfiles->data['sets'][$name]);
-      $header['filename'] = array('data' => 'File', 'field' => 'filename');
-      $form['dataset'][$name]['table'] = array(
-        '#type' => 'tableselect',
-        '#header' => $header,
-        '#options' => $data,
-        '#multiple' => TRUE,
-        '#default_value' => array(),
-        // '#js_select' => FALSE,
-        '#empty' => t('Empty'),
-      );
+      $output[$name] = drupal_get_form('lambeth_opendata_dataset_upload_form', $name, $data);
     }
   }
-  return $form;
+  return $output;
 }
 
-function lambeth_opendata_tableselect($form, $form_state) {
-  $header = array(
-    'fieldName' => array('data' => t('fieldName'), 'field' => 'fieldName'),
-    'type' => array('data' => t('Drupal property type'), 'field' => 'type'),
-    'metatype' => array('data' => t('Adlib metadata'), 'field' => 'metatype'),
-    'isIndexed' => array('data' => t('isIndexed'), 'field' => 'isIndexed'),
-    'displayName' => array('data' => t('displayName'), 'field' => 'displayName'),
-    'group' => array('data' => t('group'), 'field' => 'group'),
-    'repeated' => array('data' => t('repeated'), 'field' => 'repeated'),
-    'isLinked' => array('data' => t('isLinked'), 'field' => 'isLinked'),
-    'tag' => array('data' => t('tag'), 'field' => 'tag'),
-    'length' => array('data' => t('length'), 'field' => 'length'),
+function lambeth_opendata_repo_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.import');
+  $options = array(
+    'repo_owner' => 'zenlan',
+    'repo_name' => 'lambeth_opendatastore',
   );
-  $form['searchfields'] = array(
-    '#type' => 'tableselect',
-    '#header' => $header,
-    '#options' => isset($entity_dataobj->properties) ? $entity_dataobj->properties : array(),
-    '#multiple' => TRUE,
-    '#default_value' => isset($entity_dataobj->searchfields) ? $entity_dataobj->searchfields : array(),
-    // '#js_select' => FALSE,
-    '#empty' => t('Properties (fields) not found, click save to retrieve
-    metadata from the Adlib server.'),
-  );
+  foreach ($form_state['values']['dataset'] as $dataset => $files) {
+    $array = array_filter($files['files']);
+    lambeth_opendata_import_from_github($dataset, $array, $options);
+  }
 }
 
 function lambeth_opendata_configuration(array $form, array &$form_state) {
@@ -127,7 +119,7 @@ function lambeth_opendata_configuration(array $form, array &$form_state) {
 function lambeth_opendata_cache(array $form, array &$form_state) {
   $desc = '';
   $conf = lambeth_opendata_conf();
-  if (!$sfiles = lambeth_opendata_github_scrape_cache_get()) {
+  if (!$sfiles = lambeth_opendata_website_scrape_cache_get()) {
     drupal_set_message('Source cache is empty!', '', WATCHDOG_ALERT);
   }
   else {
@@ -202,7 +194,7 @@ function lambeth_opendata_github_repo_cache_set($owner, $name, $info, $refs, $tr
   return lambeth_opendata_github_repo_cache_get($owner, $name);
 }
 
-function lambeth_opendata_github_scrape_cache_get() {
+function lambeth_opendata_website_scrape_cache_get() {
   return cache_get('lambeth_opendata_scrape');
 }
 
@@ -210,7 +202,7 @@ function lambeth_opendata_github_scrape_cache_set($tree) {
   cache_set('lambeth_opendata_scrape', array(
     'sets' => $tree,
   ));
-  return lambeth_opendata_github_scrape_cache_get();
+  return lambeth_opendata_website_scrape_cache_get();
 }
 
 function lambeth_opendata_source_build_cache() {
@@ -335,7 +327,7 @@ function lambeth_opendata_scraper(array $form, array &$form_state) {
 
 function lambeth_opendata_scraper_submit(array $form, array &$form_state) {
   module_load_include('inc', 'lambeth_opendata', 'lambeth_opendata.scraper');
-  lambeth_opendata_batch_init($form_state['triggering_element']['#name']);
+  //lambeth_opendata_batch_init($form_state['triggering_element']['#name']);
 }
 
 function lambeth_opendata_entities(array $form, array &$form_state) {

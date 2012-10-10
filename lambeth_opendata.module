@@ -1,5 +1,11 @@
 <?php
 
+global $_lambeth_opendata_private_dir;
+$_lambeth_opendata_private_dir = 'private://lambeth_opendata/';
+
+global $_lambeth_opendata_public_dir;
+$_lambeth_opendata_public_dir = 'public://lambeth_opendata/';
+
 /**
  * @file
  * Entry point for the Lambeth Open Data module.
@@ -60,8 +66,8 @@ function lambeth_opendata_menu() {
     'title' => 'Repository',
     'type' => MENU_LOCAL_TASK,
     'description' => 'Check for new files from source against repository.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('lambeth_opendata_repo'),
+    'page callback' => 'lambeth_opendata_repo',
+    //'page arguments' => array('lambeth_opendata_repo'),
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 300,
@@ -70,8 +76,8 @@ function lambeth_opendata_menu() {
     'title' => 'Junk',
     'type' => MENU_LOCAL_TASK,
     'description' => 'Junk code goes here',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('lambeth_opendata_junk'),
+    'page callback' => 'lambeth_opendata_junk',
+    //'page arguments' => array('lambeth_opendata_junk'),
     'access arguments' => array('administer site configuration'),
     'file' => 'lambeth_opendata.admin.inc',
     'weight' => 400,
