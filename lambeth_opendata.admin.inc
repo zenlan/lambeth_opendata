@@ -16,18 +16,8 @@ function lambeth_opendata_junk(array $form, array &$form_state) {
 
 function lambeth_opendata_repo(array $form, array &$form_state) {
 
-  $desc = '<p>data cleaning routines</p>';
-  $desc .= '<ul>';
-  $desc .= '<li>select all/dataset/file</li>';
-  $desc .= '<li>apply regex/function</li>';
-  $desc .= '</ul>';
-  $desc .= '<p>dataset configuration routines</p>';
-  $desc .= '<ul>';
-  $desc .= '<li>select all/dataset</li>';
-  $desc .= '<li>create/map vocabulary</li>';
-  $desc .= '<li>create/update entity/properties</li>';
-  $desc .= '</ul>';
-  $desc .= '<p>data import routines</p>';
+  $desc = '';
+  $desc .= '<p>data import</p>';
   $desc .= '<ul>';
   $desc .= '<li>select all/dataset/file</li>';
   $desc .= '<li>import</li>';
@@ -38,60 +28,43 @@ function lambeth_opendata_repo(array $form, array &$form_state) {
   $conf = lambeth_opendata_conf();
   if (!$gfiles = lambeth_opendata_github_repo_cache_get($conf['datastore']['owner'], $conf['datastore']['name'])) {
     drupal_set_message('Github cache is empty!', '', WATCHDOG_ALERT);
+    return $form;
   }
-  else {
-    drupal_set_message('Github cache date: ' . date('d M Y h:m', $gfiles->created), '', WATCHDOG_ALERT);
-  }
-  if ($gfiles) {
-    foreach ($conf['datastore']['datasets'] as $name => $info) {
-      $form['dataset'][$name] = array(
-        '#title' => $name,
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-      );
-      foreach ($gfiles->data['sets'][$name] as $filename => $info) {
-        $data[] = array('filename' => $filename);
-      }
-      $tmp = array_keys($gfiles->data['sets'][$name]);
-      $header['filename'] = array('data' => 'File', 'field' => 'filename');
-      $form['dataset'][$name]['table'] = array(
-        '#type' => 'tableselect',
-        '#header' => $header,
-        '#options' => $data,
-        '#multiple' => TRUE,
-        '#default_value' => array(),
-        // '#js_select' => FALSE,
-        '#empty' => t('Empty'),
-      );
+  drupal_set_message('Github cache date: ' . date('d M Y h:m', $gfiles->created), '', WATCHDOG_ALERT);
+  $header['filename'] = array('data' => 'File', 'field' => 'filename');
+  foreach ($conf['datastore']['datasets'] as $name => $info) {
+    $form['dataset'][$name] = array(
+      '#title' => $name,
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $data = array();
+    foreach ($gfiles->data['sets'][$name] as $filename => $info) {
+      $data[] = array('filename' => $filename);
     }
+    $form['dataset'][$name]['table'] = array(
+      '#type' => 'tableselect',
+      '#header' => $header,
+      '#options' => $data,
+      '#multiple' => TRUE,
+      '#default_value' => array(),
+      // '#js_select' => FALSE,
+      '#empty' => t('Empty'),
+    );
+//    $form['dataset'][$name]['type'] = array(
+//      //'#name' => 'type',
+//      '#type' => 'hidden',
+//      '#value' => $name,
+//    );
+    $form['dataset'][$name]['import'] = array(
+      //'#name' => 'import',
+      '#type' => 'submit',
+      '#value' => t('Upload'),
+      '#submit' => array('lambeth_opendata_scraper_submit'),
+    );
   }
   return $form;
-}
-
-function lambeth_opendata_tableselect($form, $form_state) {
-  $header = array(
-    'fieldName' => array('data' => t('fieldName'), 'field' => 'fieldName'),
-    'type' => array('data' => t('Drupal property type'), 'field' => 'type'),
-    'metatype' => array('data' => t('Adlib metadata'), 'field' => 'metatype'),
-    'isIndexed' => array('data' => t('isIndexed'), 'field' => 'isIndexed'),
-    'displayName' => array('data' => t('displayName'), 'field' => 'displayName'),
-    'group' => array('data' => t('group'), 'field' => 'group'),
-    'repeated' => array('data' => t('repeated'), 'field' => 'repeated'),
-    'isLinked' => array('data' => t('isLinked'), 'field' => 'isLinked'),
-    'tag' => array('data' => t('tag'), 'field' => 'tag'),
-    'length' => array('data' => t('length'), 'field' => 'length'),
-  );
-  $form['searchfields'] = array(
-    '#type' => 'tableselect',
-    '#header' => $header,
-    '#options' => isset($entity_dataobj->properties) ? $entity_dataobj->properties : array(),
-    '#multiple' => TRUE,
-    '#default_value' => isset($entity_dataobj->searchfields) ? $entity_dataobj->searchfields : array(),
-    // '#js_select' => FALSE,
-    '#empty' => t('Properties (fields) not found, click save to retrieve
-    metadata from the Adlib server.'),
-  );
 }
 
 function lambeth_opendata_configuration(array $form, array &$form_state) {
@@ -140,21 +113,29 @@ function lambeth_opendata_cache(array $form, array &$form_state) {
     drupal_set_message('Github cache date: ' . date('d M Y h:m', $gfiles->created), '', WATCHDOG_ALERT);
   }
   if ($sfiles && $gfiles) {
-    $stmp['root'] = array_diff($sfiles->data['sets'], $gfiles->data['sets']);
-    $gtmp['root'] = array_diff($gfiles->data['sets'], $sfiles->data['sets']);
+    $desc .= '<p>Cache differences:</p>';
+//    $stmp['root'] = array_diff($sfiles->data['sets'], $gfiles->data['sets']);
+//    $gtmp['root'] = array_diff($gfiles->data['sets'], $sfiles->data['sets']);
     foreach ($conf['datastore']['datasets'] as $name => $info) {
-      $stmp[$name] = array_diff($sfiles->data['sets'][$name], $gfiles->data['sets'][$name]);
-      $gtmp[$name] = array_diff($gfiles->data['sets'][$name], $sfiles->data['sets'][$name]);
+      if (!isset($gfiles->data['sets'][$name])) {
+        $desc .= '<p>Missing from Github: dataset ' . $name . '</p>';
+      }
+      if (!isset($sfiles->data['sets'][$name])) {
+        $desc .= '<p>Missing from Source: dataset ' . $name . '</p>';
+      }
+//      $stmp[$name] = array_diff($sfiles->data['sets'][$name], $gfiles->data['sets'][$name]);
+//      $gtmp[$name] = array_diff($gfiles->data['sets'][$name], $sfiles->data['sets'][$name]);
     }
-    $desc .= '<p>Cached differences:</p>';
-    $desc .= '<p>Missing from Github: ' . print_r($stmp, 1) . '</p>';
-    $desc .= '<p>Missing from source: ' . print_r($gtmp, 1) . '</p>';
 
     $desc .= '<div style="float:left;">Source: ' . '<ul>';
     foreach ($sfiles->data['sets'] as $setname => $files) {
       $desc .= '<li>' . $setname . ' (' . count($files) . ' files)</li><ul>';
       foreach ($files as $filename => $info) {
-        $desc .= '<li>' . $filename . '</li>';
+        $style = '';
+        if (!isset($gfiles->data['sets'][$setname][$filename])) {
+          $style = 'background:yellow;';
+        }
+        $desc .= '<li style="' . $style . '">' . trim($filename) . '</li>';
       }
       $desc .= '</ul>';
     }
@@ -163,7 +144,11 @@ function lambeth_opendata_cache(array $form, array &$form_state) {
     foreach ($gfiles->data['sets'] as $setname => $files) {
       $desc .= '<li>' . $setname . ' (' . count($files) . ' files)</li><ul>';
       foreach ($files as $filename => $info) {
-        $desc .= '<li>' . $filename . '</li>';
+        $style = '';
+        if (!isset($sfiles->data['sets'][$setname][$filename])) {
+          $style = 'background:yellow;';
+        }
+        $desc .= '<li style="' . $style . '">' . trim($filename) . '</li>';
       }
       $desc .= '</ul>';
     }
@@ -224,10 +209,14 @@ function lambeth_opendata_source_build_cache() {
 }
 
 function lambeth_opendata_conf() {
-  $result = array();
   try {
-    $conf = lambeth_opendata_static_conf();
-    $result = $conf->get_conf_array();
+    if (!$cache = cache_get('lambeth_opendata_conf')) {
+      $conf = lambeth_opendata_static_conf();
+      $cache = $conf->get_conf_array();
+      cache_set('lambeth_opendata_conf', $cache);
+      $cache = cache_get('lambeth_opendata_conf');
+    }
+    $result = $cache->data;
   } catch (Exception $e) {
     $result = array('error' => $e->getMessage());
   }
